@@ -1,6 +1,8 @@
 use std::net::*;
 use std::env;
 use std::process;
+use std::sync::mpsc;
+use std::thread;
 /*
 - input validation
 */
@@ -55,11 +57,35 @@ pub fn scan(ip: &str, port_beginn: &str, port_end:&str)-> Vec<u32> {
     let mut open_ports: Vec<u32> = vec![];
     let port_beginn = port_beginn.parse::<u32>().unwrap();
     let port_end = port_end.parse::<u32>().unwrap();
+
+    let (sender, receiver) = mpsc::channel();
+
+
     for port in port_beginn..port_end {
-        if port_open(ip, &port.to_string()) {
+        if scan_port(ip, port) {
             open_ports.push(port);
         }
     }
+
+
+
+/*
+
+    thread::spawn(move || {
+            match sender.send(port_open(ip,&port.to_string())) {
+                Ok(True) => {}, // everything good
+                Err(_) => {}, // we have been released, don't panic
+            }
+        });
+        match receiver.try_recv() {
+            Ok(True) => open_ports.push(port), // we have a connection
+            Err(_) => {
+                drop(receiver);
+            }
+        }
+    */
+
+
     open_ports
 }
 pub fn port_open(ip: &str, port: &str) -> bool {
@@ -70,5 +96,34 @@ pub fn port_open(ip: &str, port: &str) -> bool {
         true
     } else {
         false
+    }
+}
+
+fn scan_port(host: &str, port: u32) -> bool {
+    let host = host.to_string();
+    let port = port;
+    let (sender: Result<Some()>, receiver: Result<Some()>) = mpsc::channel();
+    let t = thread::spawn(move || {
+        let mut addr = host.to_string();
+        addr.push_str(":");
+        addr.push_str(&port.to_string());
+        match sender.send(TcpStream::connect(addr)) {
+            Ok(()) => {}, // everything good
+            Err(_) => {}, // we have been released, don't panic
+        }
+    });
+
+    thread::sleep(std::time::Duration::new(5, 0));
+
+    match receiver.try_recv() {
+        Ok(Ok(handle)) => true, // we have a connection
+        Ok(Err(_)) => false, // connecting failed
+        Err(mpsc::TryRecvError::Empty) => {
+            drop(receiver);
+            drop(t);
+            // connecting took more than 5 seconds
+            false
+        },
+        Err(mpsc::TryRecvError::Disconnected) => unreachable!(),
     }
 }
