@@ -1,6 +1,9 @@
 use std::net::*;
 use std::env;
 use std::process;
+use std::sync::{Arc, Mutex};
+use std::thread;
+
 /*
 - input validation
 */
@@ -9,10 +12,10 @@ fn main() {
     let remote_target = "141.37.29.215";
     let args: Vec<String> = parse_arguments();
     println!("{},{},{}",args[0],args[1],args[2]);
-    let open_ports = scan(&args[0],&args[1],&args[2]);
-    println!("{}",open_ports[0]);
-    for port in open_ports {
-        println!("{} is open",port)
+    //let open_ports = scan(&args[0],&args[1],&args[2]);
+    let open_ports = scan("141.37.29.215","79","81");
+    for port in open_ports.iter() {
+        println!("{:?} is open",port)
     }
 }
 
@@ -51,18 +54,27 @@ fn help() {
               main.rs 127.0.0.1 1-100");
 }
 
-pub fn scan(ip: &str, port_beginn: &str, port_end:&str)-> Vec<u32> {
-    let mut open_ports: Vec<u32> = vec![];
+pub fn scan(ip: &str, port_beginn: &str, port_end:&str)-> Arc<Vec<Option<u32>>> {
+    println!("scan({},{},{})",ip,port_beginn,port_end);
+    let mut open_ports_ret: Vec<u32> = vec![];
+    let mut open_ports = Arc::new(Mutex::new(vec![]));
     let port_beginn = port_beginn.parse::<u32>().unwrap();
     let port_end = port_end.parse::<u32>().unwrap();
     for port in port_beginn..port_end {
-        if port_open(ip, &port.to_string()) {
-            open_ports.push(port);
-        }
+        let port_vec = open_ports.clone();
+        thread::spawn(move || {
+            if port_open(ip, &port.to_string()) {
+                let mut data = port_vec.lock().unwrap();
+                data.push(port);
+            }
+
+        });
     }
-    open_ports
+    open_ports_ret = *open_ports;
+    open_ports_ret
 }
 pub fn port_open(ip: &str, port: &str) -> bool {
+    println!("port_open({},{})",ip,port);
     let mut addr = ip.to_string();
     addr.push_str(":");
     addr.push_str(port);
