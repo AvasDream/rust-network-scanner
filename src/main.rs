@@ -3,7 +3,7 @@ extern crate threadpool;
 use std::net::*;
 use std::env;
 use std::process; //exit(0)
-use std::sync::mpsc; //channel
+use std::sync::mpsc::channel; //channel
 use threadpool::ThreadPool; //Threadpool, extern crate
 
 fn main() {
@@ -14,6 +14,29 @@ fn main() {
     }
 }
 
+
+pub fn scan_threaded(ip: &str, port_beginn: &str, port_end:&str, threads:usize)-> Vec<u32> {
+
+
+    let mut open_ports: Vec<u32> = vec![];
+    let port_beginn = port_beginn.parse::<u32>().unwrap();
+    let port_end = port_end.parse::<u32>().unwrap();
+
+    let workers = threads;
+    let pool = ThreadPool::new(workers);
+    let (sender,receiver) = channel();
+
+    for port in port_beginn..port_end {
+        let sender = sender.clone();
+        let ip = ip.clone();
+        let port = &port.to_string();
+        pool.execute(move || {
+            sender.send(port_open(ip,port)).expect("Error with threadpool");
+        });
+    }
+
+    open_ports
+}
 
 pub fn scan(ip: &str, port_beginn: &str, port_end:&str)-> Vec<u32> {
     let mut open_ports: Vec<u32> = vec![];
