@@ -4,3 +4,4 @@ version = "0.1.0"
 authors = ["Vincent Grimmeisen <vigrimme@htwg-konstanz.de>"]
 
 [dependencies]
+threadpool = "1.7.1"
