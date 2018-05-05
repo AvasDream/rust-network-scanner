@@ -8,7 +8,7 @@ use threadpool::ThreadPool; //Threadpool, extern crate
 
 fn main() {
     let remote_target = "141.37.29.215";
-    let open_ports = scan(remote_target,"0","100");
+    let open_ports = scan_tcp(remote_target,"0","100");
     for port in open_ports {
         println!("{} is open",port)
     }
@@ -19,7 +19,8 @@ fn main() {
 pub fn test()-> String {
     "Hallo".to_string()
 }
-pub fn scan(ip: &str, port_beginn: &str, port_end:&str)-> Vec<u32> {
+
+pub fn scan_tcp(ip: &str, port_beginn: &str, port_end:&str)-> Vec<u32> {
     let mut open_ports: Vec<u32> = vec![];
     let port_beginn = port_beginn.parse::<u32>().unwrap();
     let port_end = port_end.parse::<u32>().unwrap();
@@ -31,8 +32,15 @@ pub fn scan(ip: &str, port_beginn: &str, port_end:&str)-> Vec<u32> {
     }
     open_ports
 }
-
-pub fn port_open(ip: &str, port: &str) -> bool {
+pub fn port_open_udp(ip:&str, port: &str) {
+    let mut socket = UdpSocket::bind("127.0.0.1:34254")?;
+    let mut buf = [0; 10];
+    let (amt, src) = socket.recv_from(&mut buf)?;
+    let buf = &mut buf[..amt];
+    buf.reverse();
+    socket.send_to(buf, &src)?;
+}
+pub fn port_open_tcp(ip: &str, port: &str) -> bool {
     let mut addr = ip.to_string();
     addr.push_str(":");
     addr.push_str(port);
