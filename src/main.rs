@@ -3,41 +3,47 @@ extern crate threadpool;
 use std::net::*;
 use std::env;
 use std::process; //exit(0)
-use std::sync::mpsc::channel; //channel
+use std::sync::mpsc::{Sender,channel}; //channel
 use threadpool::ThreadPool; //Threadpool, extern crate
 
 fn main() {
     let remote_target = "141.37.29.215";
-    let open_ports = scan(remote_target,"0","100");
+    let open_ports = scan_threaded(remote_target,"0","100",4);
     for port in open_ports {
         println!("{} is open",port)
     }
 }
 
 
-pub fn scan_threaded(ip: &str, port_beginn: &str, port_end:&str, threads:usize)-> Vec<u32> {
-
+pub fn scan_threaded<'l>(ip: &'l str, port_beginn: &str, port_end:&str, threads:usize)-> Vec<u32> {
 
     let mut open_ports: Vec<u32> = vec![];
     let port_beginn = port_beginn.parse::<u32>().unwrap();
     let port_end = port_end.parse::<u32>().unwrap();
 
-    let workers = threads;
-    let pool = ThreadPool::new(workers);
-    let (sender,receiver) = channel();
+    let workers: usize = threads;
+    let pool: ThreadPool = ThreadPool::new(workers);
+    let (sender ,receiver) = channel();
 
     for port in port_beginn..port_end {
+
         let sender = sender.clone();
-        let ip = ip.clone();
-        let port = &port.to_string();
+        let ip: &'l str = ip;
+        let port: &String = &port.to_string();
+
         pool.execute(move || {
-            sender.send(port_open(ip,port)).expect("Error with threadpool");
+            //port_open(ip,port)
+            sender.send(test()).expect("Error with threadpool");
         });
     }
-
+    for s in receiver.iter().take(threads) {
+        println!("{}",s);
+    }
     open_ports
 }
-
+pub fn test()-> String {
+    "Hallo".to_string()
+}
 pub fn scan(ip: &str, port_beginn: &str, port_end:&str)-> Vec<u32> {
     let mut open_ports: Vec<u32> = vec![];
     let port_beginn = port_beginn.parse::<u32>().unwrap();
