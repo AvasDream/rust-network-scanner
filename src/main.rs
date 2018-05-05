@@ -8,39 +8,14 @@ use threadpool::ThreadPool; //Threadpool, extern crate
 
 fn main() {
     let remote_target = "141.37.29.215";
-    let open_ports = scan_threaded(remote_target,"0","100",4);
+    let open_ports = scan(remote_target,"0","100");
     for port in open_ports {
         println!("{} is open",port)
     }
 }
 
 
-pub fn scan_threaded<'l>(ip: &'l str, port_beginn: &str, port_end:&str, threads:usize)-> Vec<u32> {
 
-    let mut open_ports: Vec<u32> = vec![];
-    let port_beginn = port_beginn.parse::<u32>().unwrap();
-    let port_end = port_end.parse::<u32>().unwrap();
-
-    let workers: usize = threads;
-    let pool: ThreadPool = ThreadPool::new(workers);
-    let (sender ,receiver) = channel();
-
-    for port in port_beginn..port_end {
-
-        let sender = sender.clone();
-        let ip: &'l str = ip;
-        let port: &String = &port.to_string();
-
-        pool.execute(move || {
-            //port_open(ip,port)
-            sender.send(test()).expect("Error with threadpool");
-        });
-    }
-    for s in receiver.iter().take(threads) {
-        println!("{}",s);
-    }
-    open_ports
-}
 pub fn test()-> String {
     "Hallo".to_string()
 }
