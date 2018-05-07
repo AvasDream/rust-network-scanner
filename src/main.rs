@@ -1,4 +1,4 @@
- extern crate threadpool;
+extern crate threadpool;
 
 use std::net::*;
 use std::env;
@@ -21,52 +21,36 @@ fn main() {
 pub fn scan_threaded(ip: &str, port_beginn: &str, port_end:&str, threads:usize)-> Vec<u32> {
 
 
+pub fn scan_tcp(ip: &str, port_beginn: &str, port_end:&str)-> Vec<u32> {
     let mut open_ports: Vec<u32> = vec![];
     let port_beginn = port_beginn.parse::<u32>().unwrap();
     let port_end = port_end.parse::<u32>().unwrap();
-    /*
-     let workers = threads;
-     let pool = ThreadPool::new(workers);
-     let (sender,receiver) = channel();
-
-     for port in port_beginn..port_end {
-         let sender = sender.clone();
-         let ip = ip.clone();
-         let port = &port.to_string();
-         pool.execute(move || {
-             sender.send(test()).expect("Error with threadpool");
-         });
-     }
-     */
-     open_ports
- }
-
- pub fn test()-> bool {
-     true
- }
- pub fn scan(ip: &str, port_beginn: &str, port_end:&str)-> Vec<u32> {
-     let mut open_ports: Vec<u32> = vec![];
-     let port_beginn = port_beginn.parse::<u32>().unwrap();
-     let port_end = port_end.parse::<u32>().unwrap();
-     for port in port_beginn..port_end {
-         println!("Scanning Port {} on {}",port,ip);
-         if port_open(ip, &port.to_string()) {
-             open_ports.push(port);
-         }
-     }
-     open_ports
- }
-
-  pub fn port_open(ip: &str, port: &str) -> bool {
-      let mut addr = ip.to_string();
-      addr.push_str(":");
-      addr.push_str(port);
-      if let Ok(stream) = TcpStream::connect(addr) {
-          true
-      } else {
-          false
-      }
-  }
+    for port in port_beginn..port_end {
+        println!("Scanning Port {} on {}",port,ip);
+        if port_open(ip, &port.to_string()) {
+            open_ports.push(port);
+        }
+    }
+    open_ports
+}
+pub fn port_open_udp(ip:&str, port: &str) {
+    let mut socket = UdpSocket::bind("127.0.0.1:34254")?;
+    let mut buf = [0; 10];
+    let (amt, src) = socket.recv_from(&mut buf)?;
+    let buf = &mut buf[..amt];
+    buf.reverse();
+    socket.send_to(buf, &src)?;
+}
+pub fn port_open_tcp(ip: &str, port: &str) -> bool {
+    let mut addr = ip.to_string();
+    addr.push_str(":");
+    addr.push_str(port);
+    if let Ok(stream) = TcpStream::connect(addr) {
+        true
+    } else {
+        false
+    }
+}
 
  #[allow(dead_code)]
  fn help() {
