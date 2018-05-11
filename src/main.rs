@@ -5,11 +5,16 @@ use std::env;
 use std::process; //exit(0)
 use std::sync::mpsc::{channel,Sender}; //channel
 use std::thread;
+use std::cmp;
 
+pub enum ScanType {
+     TCP_FULL,
+     UDP
+ }
 fn main() {
     let remote_target = "141.37.29.215";
     help();
-    let open_ports = scan_tcp(remote_target,0,15000);
+    let open_ports = scan(remote_target,0,100, ScanType::UDP);
     for port in open_ports {
         println!("{} is open",port)
     }
@@ -17,15 +22,18 @@ fn main() {
 }
 
 
-pub fn scan_tcp_full(ip: &str, port_beginn: usize, port_end: usize)-> Vec<usize> {
+pub fn scan(ip: &str, port_beginn: usize, port_end: usize, scan_type:ScanType)-> Vec<usize> {
 
     let mut open_ports: Vec<usize> = vec![];
 
     let (tx,rx) = channel();
 
     for port in port_beginn..port_end {
+        match scan_type {
+            ScanType::TCP_FULL => port_open_tcp_full(ip.to_string(), port, tx.clone()),
+            ScanType::UDP => port_open_udp(ip.to_string(), port, tx.clone()),
+        }
         println!("Scanning Port {} on {}",port,ip);
-        port_open_tcp(ip.to_string(), port, tx.clone());
     }
     for value in rx.iter().take(port_end - port_beginn) {
         if value.1 {
@@ -34,11 +42,27 @@ pub fn scan_tcp_full(ip: &str, port_beginn: usize, port_end: usize)-> Vec<usize>
     }
     open_ports
 }
-pub fn port_open_tcp(ip: String, port: usize,  tx: Sender<(usize,bool)>) {
+pub fn port_open_udp(ip: String, port: usize, tx: Sender<(usize,bool)>) {
     thread::spawn(move || {
-        let mut addr = ip.to_string();
-        addr.push_str(":");
-        addr.push_str(&port.to_string());
+        let mut addr = prep_ip(ip,port);
+        let mut socket = UdpSocket::bind("127.0.0.1:34254").unwrap();
+
+        let bytes_amount = match socket.send_to(&[63], addr) {
+            Ok(res) => res,
+            Err(_)    => 99,
+        };
+        //println!("{}",bytes_amount);
+
+        if bytes_amount.cmp(&0) == cmp::Ordering::Greater {
+            tx.send((port, true))
+        } else {
+            tx.send((port, false))
+        }
+    });
+}
+pub fn port_open_tcp_full(ip: String, port: usize,  tx: Sender<(usize,bool)>) {
+    thread::spawn(move || {
+        let addr = prep_ip(ip,port);
         if let Ok(stream) = TcpStream::connect(addr) {
             tx.send((port, true))
         } else {
@@ -46,17 +70,14 @@ pub fn port_open_tcp(ip: String, port: usize,  tx: Sender<(usize,bool)>) {
         }
     });
 }
-/*
-pub fn port_open_udp(ip:&str, port: &str) {
-
-    let mut socket = UdpSocket::bind("127.0.0.1:34254")?;
-    let mut buf = [0; 10];
-    let (amt, src) = socket.recv_from(&mut buf)?;
-    let buf = &mut buf[..amt];
-    buf.reverse();
-    socket.send_to(buf, &src)?;
-
+pub fn prep_ip (ip: String, port: usize) -> String {
+    let mut addr = ip.to_string();
+    addr.push_str(":");
+    addr.push_str(&port.to_string());
+    addr
 }
+/*
+
 pub fn port_open_tcp_bkp(ip: &str, port: &str) -> bool {
     let mut addr = ip.to_string();
     addr.push_str(":");
