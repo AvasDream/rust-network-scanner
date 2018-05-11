@@ -3,45 +3,61 @@ extern crate threadpool;
 use std::net::*;
 use std::env;
 use std::process; //exit(0)
-use std::sync::mpsc::channel; //channel
-use threadpool::ThreadPool; //Threadpool, extern crate
+use std::sync::mpsc::{channel,Sender}; //channel
+use std::thread;
 
 fn main() {
     let remote_target = "141.37.29.215";
     help();
-    /*
-    let open_ports = scan_threaded(remote_target,"0","100",5);
+    let open_ports = scan_tcp(remote_target,0,15000);
     for port in open_ports {
         println!("{} is open",port)
     }
-    */
+
 }
 
 
-pub fn scan_threaded(ip: &str, port_beginn: &str, port_end:&str, threads:usize)-> Vec<u32> {
+pub fn scan_tcp_full(ip: &str, port_beginn: usize, port_end: usize)-> Vec<usize> {
 
+    let mut open_ports: Vec<usize> = vec![];
 
-pub fn scan_tcp(ip: &str, port_beginn: &str, port_end:&str)-> Vec<u32> {
-    let mut open_ports: Vec<u32> = vec![];
-    let port_beginn = port_beginn.parse::<u32>().unwrap();
-    let port_end = port_end.parse::<u32>().unwrap();
+    let (tx,rx) = channel();
+
     for port in port_beginn..port_end {
         println!("Scanning Port {} on {}",port,ip);
-        if port_open(ip, &port.to_string()) {
-            open_ports.push(port);
+        port_open_tcp(ip.to_string(), port, tx.clone());
+    }
+    for value in rx.iter().take(port_end - port_beginn) {
+        if value.1 {
+            open_ports.push(value.0)
         }
     }
     open_ports
 }
+pub fn port_open_tcp(ip: String, port: usize,  tx: Sender<(usize,bool)>) {
+    thread::spawn(move || {
+        let mut addr = ip.to_string();
+        addr.push_str(":");
+        addr.push_str(&port.to_string());
+        if let Ok(stream) = TcpStream::connect(addr) {
+            tx.send((port, true))
+        } else {
+            tx.send((port, false))
+        }
+    });
+}
+/*
 pub fn port_open_udp(ip:&str, port: &str) {
+
     let mut socket = UdpSocket::bind("127.0.0.1:34254")?;
     let mut buf = [0; 10];
     let (amt, src) = socket.recv_from(&mut buf)?;
     let buf = &mut buf[..amt];
     buf.reverse();
     socket.send_to(buf, &src)?;
+
 }
-pub fn port_open_tcp(ip: &str, port: &str) -> bool {
+pub fn port_open_tcp_bkp(ip: &str, port: &str) -> bool {
     let mut addr = ip.to_string();
     addr.push_str(":");
     addr.push_str(port);
@@ -52,6 +68,19 @@ pub fn port_open_tcp(ip: &str, port: &str) -> bool {
     }
 }
 
+pub fn scan_tcp_bkp(ip: &str, port_beginn: &str, port_end:&str)-> Vec<u32> {
+    let mut open_ports: Vec<u32> = vec![];
+    let port_beginn = port_beginn.parse::<u32>().unwrap();
+    let port_end = port_end.parse::<u32>().unwrap();
+    for port in port_beginn..port_end {
+        println!("Scanning Port {} on {}",port,ip);
+        if port_open_tcp(ip, &port.to_string()) {
+            open_ports.push(port);
+        }
+    }
+    open_ports
+}
+*/
  #[allow(dead_code)]
  fn help() {
      println!("
@@ -59,7 +88,6 @@ pub fn port_open_tcp(ip: &str, port: &str) -> bool {
 | __  |_ _ ___| |_   |   | |___| |_ _ _ _ ___ ___| |_   |   __|___ ___ ___ ___ ___ ___
 |    -| | |_ -|  _|  | | | | -_|  _| | | | . |  _| '_|  |__   |  _| .'|   |   | -_|  _|
 |__|__|___|___|_|    |_|___|___|_| |_____|___|_| |_,_|  |_____|___|__,|_|_|_|_|___|_|
-
 
     Usage:
     ./rns <Scan Type> <Port-Range> <IP>
