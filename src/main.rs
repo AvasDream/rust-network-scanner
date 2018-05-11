@@ -14,7 +14,7 @@ pub enum ScanType {
 fn main() {
     let remote_target = "141.37.29.215";
     help();
-    let open_ports = scan(remote_target,0,100, ScanType::UDP);
+    let open_ports = scan(remote_target,0,100, ScanType::TCP_FULL);
     for port in open_ports {
         println!("{} is open",port)
     }
@@ -71,9 +71,7 @@ pub fn port_open_tcp_full(ip: String, port: usize,  tx: Sender<(usize,bool)>) {
     });
 }
 pub fn prep_ip (ip: String, port: usize) -> String {
-    let mut addr = ip.to_string();
-    addr.push_str(":");
-    addr.push_str(&port.to_string());
+    let addr = ip.to_string() + ":" + &port.to_string();
     addr
 }
 /*
