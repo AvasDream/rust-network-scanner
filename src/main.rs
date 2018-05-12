@@ -12,9 +12,9 @@ pub enum ScanType {
      UDP
  }
 fn main() {
-    let remote_target = "141.37.29.215";
+    let remote_target = "192.168.0.1";
     help();
-    let open_ports = scan(remote_target,0,100, ScanType::TCP_FULL);
+    let open_ports = scan(remote_target,0,10000, ScanType::UDP);
     for port in open_ports {
         println!("{} is open",port)
     }
@@ -27,11 +27,13 @@ pub fn scan(ip: &str, port_beginn: usize, port_end: usize, scan_type:ScanType)->
     let mut open_ports: Vec<usize> = vec![];
 
     let (tx,rx) = channel();
-
+    let mut socket = UdpSocket::bind("0.0.0.0:0").unwrap();
     for port in port_beginn..port_end {
         match scan_type {
             ScanType::TCP_FULL => port_open_tcp_full(ip.to_string(), port, tx.clone()),
-            ScanType::UDP => port_open_udp(ip.to_string(), port, tx.clone()),
+            ScanType::UDP => {
+                port_open_udp(ip.to_string(), port, tx.clone(), socket.try_clone().unwrap())
+            },
         }
         println!("Scanning Port {} on {}",port,ip);
     }
@@ -42,22 +44,23 @@ pub fn scan(ip: &str, port_beginn: usize, port_end: usize, scan_type:ScanType)->
     }
     open_ports
 }
-pub fn port_open_udp(ip: String, port: usize, tx: Sender<(usize,bool)>) {
+
+pub fn port_open_udp(ip: String, port: usize, tx: Sender<(usize,bool)>, socket: UdpSocket) {
     thread::spawn(move || {
         let mut addr = prep_ip(ip,port);
-        let mut socket = UdpSocket::bind("127.0.0.1:34254").unwrap();
 
-        let bytes_amount = match socket.send_to(&[63], addr) {
+
+        let bytes_amount = match socket.send_to(&[0;63], addr) {
             Ok(res) => res,
-            Err(_)    => 99,
+            Err(_)    => 666,
         };
-        //println!("{}",bytes_amount);
-
-        if bytes_amount.cmp(&0) == cmp::Ordering::Greater {
-            tx.send((port, true))
-        } else {
-            tx.send((port, false))
+        println!("{}",bytes_amount);
+        /*
+        match bytes_amount.cmp(&0) {
+            cmp::Ordering::Greater => tx.send((port, true)),
+            _ => ()
         }
+        */
     });
 }
 pub fn port_open_tcp_full(ip: String, port: usize,  tx: Sender<(usize,bool)>) {
@@ -74,32 +77,7 @@ pub fn prep_ip (ip: String, port: usize) -> String {
     let addr = ip.to_string() + ":" + &port.to_string();
     addr
 }
-/*
 
-pub fn port_open_tcp_bkp(ip: &str, port: &str) -> bool {
-    let mut addr = ip.to_string();
-    addr.push_str(":");
-    addr.push_str(port);
-    if let Ok(stream) = TcpStream::connect(addr) {
-        true
-    } else {
-        false
-    }
-}
-
-pub fn scan_tcp_bkp(ip: &str, port_beginn: &str, port_end:&str)-> Vec<u32> {
-    let mut open_ports: Vec<u32> = vec![];
-    let port_beginn = port_beginn.parse::<u32>().unwrap();
-    let port_end = port_end.parse::<u32>().unwrap();
-    for port in port_beginn..port_end {
-        println!("Scanning Port {} on {}",port,ip);
-        if port_open_tcp(ip, &port.to_string()) {
-            open_ports.push(port);
-        }
-    }
-    open_ports
-}
-*/
  #[allow(dead_code)]
  fn help() {
      println!("
