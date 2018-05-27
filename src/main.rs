@@ -21,7 +21,14 @@ pub enum ScanTypeHosts {
     OsDetection
 }
 fn main() {
-    utility::help();
+
+    let arguments: Vec<String> = utility::parse_arguments();
+
+    for arg in arguments {
+        println!("{}",arg);
+    }
+
+
 }
 
 
