@@ -5,3 +5,6 @@ authors = ["Vincent Grimmeisen <vigrimme@htwg-konstanz.de>"]
 
 [dependencies]
 threadpool = "1.7.1"
+
+[dependencies.pnet]
+version = "0.21.0"

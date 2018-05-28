@@ -9,6 +9,7 @@ use std::sync::mpsc::{channel,Sender}; //channel
 
 mod utility;
 mod tcp_scans;
+mod icmp_scan;
 
 pub enum ScanType{
      TcpFull,
@@ -23,13 +24,14 @@ pub enum ScanType{
 fn main() {
 
     let arguments: Vec<String> = utility::parse_arguments();
-    //let ip = &arguments[1];
     let scantype: ScanType = parse_scan_type(arguments.iter().nth(0).unwrap().to_string());
-    for arg in arguments {
-        println!("{}",arg);
+    let ip = arguments[1].clone();
+    let start_port = arguments[2].clone().parse::<usize>().unwrap_or(0);
+    let end_port = arguments[3].clone().parse::<usize>().unwrap_or(0);
+    let scan_result = scan_ports(&ip,start_port,end_port,scantype);
+    for port in scan_result {
+        println!("Port {} is open", port)
     }
-
-
 }
 
 
@@ -38,7 +40,9 @@ fn scan_ports(ip: &str, port_beginn: usize, port_end: usize, scan_type:ScanType)
     let (tx,rx) = channel();
     for port in port_beginn..port_end {
         match scan_type {
-            ScanType::TcpFull => tcp_scans::port_open_tcp_full(utility::prep_ip(ip.to_string(),port), port, tx.clone()),
+            ScanType::TcpFull => {
+                tcp_scans::port_open_tcp_full(utility::prep_ip(ip.to_string(),port), port, tx.clone())
+            },
             ScanType::Udp => {
                 unimplemented!()
             },
