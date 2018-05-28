@@ -70,6 +70,7 @@ pub fn prep_ip (ip: String, port: usize) -> String {
 
 pub fn parse_ports (ports: String) -> Vec<String> {
     if !ports.contains("-") {
+        println!("Error while parsing ports.");
         exit_on_error()
     }
     let res: Vec<String> = ports.split("-").map(|s| s.to_string()).collect();
@@ -83,7 +84,7 @@ pub fn str_to_usize(string: String) -> Option<usize> {
     let ret = string.parse::<usize>().unwrap();
     Some(ret)
 }
-fn exit_on_error(){
+pub fn exit_on_error(){
     help();
     process::exit(0);
 }
