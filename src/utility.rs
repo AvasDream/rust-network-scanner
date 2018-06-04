@@ -14,6 +14,10 @@ pub fn parse_arguments()-> HashMap<String,String> {
         5 => {
             args_map.insert("scantype".to_string(), args.iter().nth(2).unwrap().to_string());
             args_map.insert("host".to_string(), args.iter().nth(4).unwrap().to_string());
+            if args_map.get("scantype").unwrap() != "P" {
+                println!("No Ports given.");
+                exit_on_error()
+            }
         },
         7 => {
             println!("Match in parse argumetns");
