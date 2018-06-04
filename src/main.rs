@@ -4,7 +4,7 @@ extern crate threadpool;
 
 
 use std::sync::mpsc::{channel,Sender}; //channel
-
+use std::collections::HashMap;
 
 
 mod utility;
@@ -23,15 +23,28 @@ pub enum ScanType{
 
 fn main() {
 
-    let arguments: Vec<String> = utility::parse_arguments();
-    let scantype: ScanType = parse_scan_type(arguments.iter().nth(0).unwrap().to_string());
-    let ip = arguments[1].clone();
-    let start_port = arguments[2].clone().parse::<usize>().unwrap_or(0);
-    let end_port = arguments[3].clone().parse::<usize>().unwrap_or(0);
-    let scan_result = scan_ports(&ip,start_port,end_port,scantype);
+    let arguments: HashMap<String,String> = utility::parse_arguments();
+    let mut scan_result = Vec::new();
+    /*
+    println!("{},{}",arguments.contains_key("scantype"),arguments.contains_key("host"));
+    for a in arguments {
+        println!("{} => {}",a.0,a.1);
+    }
+    */
+    if arguments.contains_key("scantype") && arguments.contains_key("host") {
+        let scantype: ScanType = parse_scan_type(arguments.get("scantype").unwrap().to_string());
+        let ip = arguments.get("host").unwrap();
+        let start_port = arguments.get("start").unwrap().parse::<usize>().unwrap_or(0);
+        let end_port = arguments.get("end").unwrap().parse::<usize>().unwrap_or(0);
+        scan_result = scan_ports(&ip,start_port,end_port,scantype);
+    } else {
+        utility::exit_on_error()
+    }
+
     for port in scan_result {
         println!("Port {} is open", port)
     }
+
 }
 
 
@@ -76,22 +89,22 @@ fn scan_ports(ip: &str, port_beginn: usize, port_end: usize, scan_type:ScanType)
 fn parse_scan_type(string: String) -> ScanType {
     let mut scantype: ScanType = ScanType::Ping;
     match string.as_ref() {
-        "-P" => {
+        "P" => {
             scantype = ScanType::Ping;
         },
-        "-O" => {
+        "O" => {
             scantype = ScanType::OsDetection;
         },
-        "-TF" => {
+        "TF" => {
             scantype = ScanType::TcpFull;
         },
-        "-TS" => {
+        "TS" => {
             scantype = ScanType::TcpSyn;
         },
-        "-TN" => {
+        "TN" => {
             scantype = ScanType::TcpNull;
         },
-        "-U" => {
+        "U" => {
             scantype = ScanType::Udp;
         },
         _ => {
