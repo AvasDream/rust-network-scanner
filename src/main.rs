@@ -23,12 +23,14 @@ fn main() {
 
     let arguments = utility::parse_arguments();
     let ports = utility::parse_ports(arguments.value_of("PORTS").unwrap().to_string());
-    let ip = arguments.value_of("IP").unwrap().to_string();
-    println!("{}",ip);
-    let scantype = arguments.value_of("SCANTYPE").unwrap().to_string();
-    let port_beginn = &ports[0];
-    let port_end = &ports[1];
-
+    let ip = arguments.value_of("IP").unwrap();
+    let scantype = parse_scan_type(arguments.value_of("SCANTYPE").unwrap().to_string());
+    let port_beginn = ports[0].parse::<usize>().unwrap_or(0);
+    let port_end = ports[1].parse::<usize>().unwrap_or(0);
+    let scan_result = scan_ports(ip,port_beginn,port_end,scantype);
+    for port in scan_result {
+        println!("Port {} is open", port)
+    }
 }
 
 
