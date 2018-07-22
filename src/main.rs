@@ -1,11 +1,11 @@
 extern crate threadpool;
 extern crate pnet;
-
+extern crate rayon;
 
 
 use std::sync::mpsc::{channel,Sender}; //channel
 use std::collections::HashMap;
-
+use rayon::prelude::*;
 
 mod utility;
 mod tcp_scans;
@@ -40,10 +40,12 @@ fn main() {
     } else {
         utility::exit_on_error()
     }
-
+    /*
     for port in scan_result {
         println!("Port {} is open", port)
     }
+    */
+    scan_result.par_iter().map(|a| println!("Port {} is open",a));
 
 }
 
