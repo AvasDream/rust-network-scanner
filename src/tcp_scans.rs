@@ -16,3 +16,12 @@ pub fn port_open_tcp_full(addr: String, port:usize,  tx: Sender<(usize,bool)>) {
         }
     });
 }
+
+pub fn tcp_full(addr: String, port:usize)-> bool {
+    let addr = addr;
+    if let Ok(stream) = TcpStream::connect(addr) {
+        return true;
+    } else {
+        return false;
+    }
+}
