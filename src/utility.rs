@@ -2,6 +2,7 @@ use std::env;
 use std::process; //exit(0)
 use std::collections::HashMap;
 use clap::*;
+use std::thread;
 
 #[allow(dead_code)]
 pub fn parse_arguments()-> ArgMatches<'static> {
@@ -91,30 +92,23 @@ pub fn exit_on_error(){
     //print_usgae();
     process::exit(0);
 }
-#[allow(dead_code)]
-pub fn print_usgae() {
-    println!("
- _____         _      _____     _                 _      _____
-| __  |_ _ ___| |_   |   | |___| |_ _ _ _ ___ ___| |_   |   __|___ ___ ___ ___ ___ ___
-|    -| | |_ -|  _|  | | | | -_|  _| | | | . |  _| '_|  |__   |  _| .'|   |   | -_|  _|
-|__|__|___|___|_|    |_|___|___|_| |_____|___|_| |_,_|  |_____|___|__,|_|_|_|_|___|_|
 
-Scan Types:
-P          Ping scan
-TF         Tcp full scan
-TS         Tcp Syn scan
-TN         Tcp Null scan
-U          Udp scan
-O          Host operation system detection
+pub struct Threadpool {
+    threads: Vec<thread::JoinHandle<()>>,
+}
 
-Options:
--iL <file>  Input from list of hosts
--o <file>   Save output to file
+impl Threadpool {
+    pub fn new(size:usize) -> Threadpool {
+        assert!(size > 0);
 
-Example:
-./rns -t P -i 127.0.0.1
-./rns -t TF -i 127.0.0.1 -p 1-100
-");
+        let mut threads = Vec::with_capacity(size);
+        for _ in 0..size {
+            //thread::spawn
+        }
+        Threadpool{
+            threads
+        }
+    }
 }
 
 
@@ -128,32 +122,3 @@ mod tests {
     }
 }
 
-/*
-if env::args().len() < 5 {
-        exit_on_error()
-    }
-    println!("Argument Count: {}", env::args().len());
-    let mut args_map: HashMap<String,String> = HashMap::new();
-    let args: Vec<String> = env::args().collect();
-    match args.len() {
-        5 => {
-            args_map.insert("scantype".to_string(), args.iter().nth(2).unwrap().to_string());
-            args_map.insert("host".to_string(), args.iter().nth(4).unwrap().to_string());
-            if args_map.get("scantype").unwrap() != "P" {
-                println!("No Ports given.");
-                exit_on_error()
-            }
-        },
-        7 => {
-            println!("Match in parse argumetns");
-            args_map.insert("scantype".to_string(), args.iter().nth(2).unwrap().to_string());
-            args_map.insert("host".to_string(), args.iter().nth(4).unwrap().to_string());
-            let ports = parse_ports(args.iter().nth(6).unwrap().to_string());
-            args_map.insert("start".to_string(), ports.iter().nth(0).unwrap().to_string());
-            args_map.insert("end".to_string(), ports.iter().nth(1).unwrap().to_string());
-        },
-        _ => exit_on_error()
-    }
-    args_map
-
-*/
