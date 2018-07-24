@@ -2,9 +2,7 @@ use std::thread;
 use std::net::*;
 use std::sync::mpsc::{channel,Sender}; //channel
 
-/*
-    Port as parameter is a hacky solution
-*/
+
 #[allow(dead_code)]
 pub fn port_open_tcp_full(addr: String, port:usize,  tx: Sender<(usize,bool)>) {
     thread::spawn(move || {
@@ -17,11 +15,11 @@ pub fn port_open_tcp_full(addr: String, port:usize,  tx: Sender<(usize,bool)>) {
     });
 }
 
-pub fn tcp_full(addr: String, port:usize)-> bool {
+pub fn tcp_full(addr: String, port:usize)-> (usize, bool) {
     let addr = addr;
     if let Ok(stream) = TcpStream::connect(addr) {
-        return true;
+        return (port,true);
     } else {
-        return false;
+        return (port,false);
     }
 }
