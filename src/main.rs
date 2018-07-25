@@ -4,6 +4,7 @@ extern crate clap;
 
 use std::sync::mpsc::{channel,Sender}; //channel
 use std::collections::HashMap;
+use threadpool::ThreadPool;
 
 mod utility;
 mod tcp_scans;
@@ -23,18 +24,30 @@ fn main() {
 
     let arguments = utility::parse_arguments();
     let ports = utility::parse_ports(arguments.value_of("PORTS").unwrap().to_string());
-    let ip = arguments.value_of("IP").unwrap();
+    let ip = arguments.value_of("IP").unwrap().to_string();
     let scantype = parse_scan_type(arguments.value_of("SCANTYPE").unwrap().to_string());
     let port_beginn = ports[0].parse::<usize>().unwrap_or(0);
     let port_end = ports[1].parse::<usize>().unwrap_or(0);
-    /*let scan_result = scan_ports(ip,port_beginn,port_end,scantype);
-    for port in scan_result {
-        println!("Port {} is open", port)
+    //let scan_result = scan_ports(ip,port_beginn,port_end,scantype);
+
+
+    let n_workers = 4;
+    let n_jobs = 8;
+    let pool = ThreadPool::new(n_workers);
+    let (tx, rx) = channel();
+    for _ in 0..n_jobs {
+        for port in port_beginn..port_end {
+            let tx = tx.clone();
+            let ip = ip.clone();
+            pool.execute(move|| {
+                let p = tcp_scans::tcp_full(ip,port);
+                tx.send(p).expect("channel will be there waiting for the pool");
+            });
+        }
     }
-    */
-    let Threadpool = utility::Threadpool::new(4);
-    for port in port_beginn..port_end {
-        Threadpool.execute(tcp_scans::tcp_full(ip.to_string(), port))
+    let scan_result = rx.recv();
+    for port in scan_result {
+        println!("Port {:?} is open", port)
     }
 }
 

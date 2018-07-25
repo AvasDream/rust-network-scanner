@@ -19,6 +19,7 @@ pub fn port_open_tcp_full(addr: String, port:usize,  tx: Sender<(usize,bool)>) {
 */
 pub fn tcp_full(addr: String, port:usize)-> Option<usize> {
     let addr = addr;
+    println!("{}:{}",addr,port);
     if let Ok(stream) = TcpStream::connect(addr) {
         return Some(port);
     }
