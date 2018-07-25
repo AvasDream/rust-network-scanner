@@ -27,9 +27,14 @@ fn main() {
     let scantype = parse_scan_type(arguments.value_of("SCANTYPE").unwrap().to_string());
     let port_beginn = ports[0].parse::<usize>().unwrap_or(0);
     let port_end = ports[1].parse::<usize>().unwrap_or(0);
-    let scan_result = scan_ports(ip,port_beginn,port_end,scantype);
+    /*let scan_result = scan_ports(ip,port_beginn,port_end,scantype);
     for port in scan_result {
         println!("Port {} is open", port)
+    }
+    */
+    let Threadpool = utility::Threadpool::new(4);
+    for port in port_beginn..port_end {
+        Threadpool.execute(tcp_scans::tcp_full(ip.to_string(), port))
     }
 }
 

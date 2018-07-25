@@ -3,6 +3,7 @@ use std::process; //exit(0)
 use std::collections::HashMap;
 use clap::*;
 use std::thread;
+use std::sync::{Arc,Mutex,mpsc};
 
 #[allow(dead_code)]
 pub fn parse_arguments()-> ArgMatches<'static> {
@@ -51,22 +52,6 @@ U          Udp scan
     matches
 }
 
-pub fn prepare_arguments(arguments: ArgMatches) -> HashMap<String,String> {
-    let mut args_map: HashMap<String,String> = HashMap::new();
-    /*
-    let ports = parse_ports(arguments.value_of("PORTS").unwrap().to_string());
-    let ip = arguments.value_of("IP").unwrap().to_string();
-    let scantype = arguments.value_of("SCANTYPE").unwrap().to_string();
-    let port_beginn = ports[0];
-    let port_end = ports[1];
-    args_map.insert("ip",ip);
-    args_map.insert("port_beginn",port_beginn.to_string());
-    args_map.insert("port_end", port_end.clone());
-    args_map.insert("scantype", scantype.clone().to_string());
-    */
-    args_map
-}
-
 pub fn prep_ip (ip: String, port: usize) -> String {
     let addr = ip.to_string() + ":" + &port.to_string();
     addr
@@ -94,22 +79,79 @@ pub fn exit_on_error(){
 }
 
 pub struct Threadpool {
-    threads: Vec<thread::JoinHandle<()>>,
+    workers: Vec<Worker>,
+    sender: mpsc::Sender<Job>,
 }
-
+trait FnBox {
+    fn call_box(self: Box<Self>);
+}
+/*
+impl<F: FnOnce()> FnBox for F {
+    fn call_box(self: Box<F>) {
+        (*self)()
+    }
+}
+*/
+impl<Option: FnOnce()> FnBox for Option {
+    fn call_box(self: Box<Option>) {
+        (*self)()
+    }
+}
+type Job = Box<FnBox + Send + 'static>;
 impl Threadpool {
+
     pub fn new(size:usize) -> Threadpool {
         assert!(size > 0);
 
-        let mut threads = Vec::with_capacity(size);
-        for _ in 0..size {
-            //thread::spawn
+        let (sender, receiver) = mpsc::channel();
+
+        let receiver = Arc::new(Mutex::new(receiver));
+
+        let mut workers = Vec::with_capacity(size);
+
+        for id in 0..size {
+            workers.push(Worker::new(id, Arc::clone(&receiver)));
         }
+
         Threadpool{
-            threads
+            workers,
+            sender
+        }
+    }
+
+    pub fn execute<F>(&self, f: F)
+        where
+            F: FnOnce() + Send + 'static
+    {
+        let job = Box::new(f);
+
+        self.sender.send(job).unwrap();
+    }
+}
+
+struct Worker {
+    id: usize,
+    thread: thread::JoinHandle<Arc<Mutex<mpsc::Receiver<Job>>>>,
+}
+impl Worker {
+    fn new(id: usize, receiver: Arc<Mutex<mpsc::Receiver<Job>>>) -> Worker {
+        let thread = thread::spawn(move || {
+            loop {
+                let job = receiver.lock().unwrap().recv().expect("Error in Job thread.");
+
+                println!("Worker {} got a job; executing.", id);
+
+                job.call_box();
+            }
+        });
+
+        Worker {
+            id,
+            thread,
         }
     }
 }
+
 
 
 
