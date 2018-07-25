@@ -5,6 +5,8 @@ extern crate clap;
 use std::sync::mpsc::{channel,Sender}; //channel
 use std::collections::HashMap;
 use threadpool::ThreadPool;
+use std::sync::{Arc, Barrier};
+use std::sync::atomic::{AtomicUsize, Ordering};
 
 mod utility;
 mod tcp_scans;
@@ -31,21 +33,34 @@ fn main() {
     //let scan_result = scan_ports(ip,port_beginn,port_end,scantype);
 
 
-    let n_workers = 4;
+    let n_workers = 16;
     let n_jobs = 8;
+    assert!(n_jobs <= n_workers, "too many jobs, will deadlock");
     let pool = ThreadPool::new(n_workers);
+
+    let an_atomic = Arc::new(AtomicUsize::new(0));
+    let barrier = Arc::new(Barrier::new(n_jobs + 1));
+
     let (tx, rx) = channel();
+
     for _ in 0..n_jobs {
+
         for port in port_beginn..port_end {
             let tx = tx.clone();
             let ip = ip.clone();
+
+            let barrier = barrier.clone();
+
             pool.execute(move|| {
                 let p = tcp_scans::tcp_full(ip,port);
                 tx.send(p).expect("channel will be there waiting for the pool");
+                barrier.wait();
             });
         }
     }
+    barrier.wait();
     let scan_result = rx.recv();
+    println!("{:?}",scan_result.unwrap());
     for port in scan_result {
         println!("Port {:?} is open", port)
     }
