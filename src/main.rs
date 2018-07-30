@@ -20,7 +20,8 @@ pub enum ScanType{
  }
 /*
     Bugs:
-    Programm not exiting after run with threadpool.
+    - Programm not exiting after run with threadpool.
+    - Cant compile when using pnet::datalink
 */
 
 fn main() {
@@ -32,10 +33,10 @@ fn main() {
     let port_beginn = ports[0].parse::<usize>().unwrap_or(0);
     let port_end = ports[1].parse::<usize>().unwrap_or(0);
     let open = threaded_scan(&ip, port_beginn, port_end, scantype, 120);
-*/
+
     for interface in pnet::datalink::interfaces() {
         println!("{}", interface);
-    }
+    }*/
     let ip = "192.168.0.1";
     icmp_scan::ping_scan(ip.to_string());
 
