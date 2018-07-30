@@ -1,14 +1,15 @@
 
+use pnet::packet::{Packet, MutablePacket};
+use pnet::packet::ethernet::{EthernetPacket, MutableEthernetPacket};
+use pnet::packet::arp::MutableArpPacket;
+use pnet::packet::arp::{ArpHardwareTypes, ArpOperation, ArpOperations};
+use pnet::datalink::{Channel, MacAddr, NetworkInterface, ParseMacAddrErr};
 
-use std::net::{IpAddr, Ipv4Addr};
+pub fn ping_scan(ip: String)-> bool  {
+    let mut ethernet_buffer = [0u8; 42];
+    let mut ethernet_packet = MutableEthernetPacket::new(&mut ethernet_buffer).unwrap();
+    let arp_operation: ArpOperation = ArpOperations::Request;
 
-use pnet::transport::TransportChannelType::Layer4;
-use pnet::transport::TransportProtocol::Ipv4;
-use pnet::transport::transport_channel;
-use pnet::packet::ip::IpNextHeaderProtocols;
-use pnet::packet::Packet;
-
-
-pub fn ping_scan(ip: String) /*-> bool */ {
-
+    println!("{:?}", ethernet_packet);
+    true
 }

@@ -2,12 +2,10 @@ extern crate threadpool;
 extern crate pnet;
 extern crate clap;
 
-use std::sync::mpsc::{channel,Sender}; //channel
-use std::collections::HashMap;
+use std::sync::mpsc::channel;
 use threadpool::ThreadPool;
-use std::sync::{Arc, Barrier};
-use std::sync::atomic::{AtomicUsize, Ordering};
 
+use pnet::datalink::{NetworkInterface};
 mod utility;
 mod tcp_scans;
 mod icmp_scan;
@@ -20,89 +18,55 @@ pub enum ScanType{
     Ping,
     OsDetection
  }
-
+/*
+    Bugs:
+    Programm not exiting after run with threadpool.
+*/
 
 fn main() {
-
+    /*
     let arguments = utility::parse_arguments();
     let ports = utility::parse_ports(arguments.value_of("PORTS").unwrap().to_string());
     let ip = arguments.value_of("IP").unwrap().to_string();
     let scantype = parse_scan_type(arguments.value_of("SCANTYPE").unwrap().to_string());
     let port_beginn = ports[0].parse::<usize>().unwrap_or(0);
     let port_end = ports[1].parse::<usize>().unwrap_or(0);
-    //let scan_result = scan_ports(ip,port_beginn,port_end,scantype);
+    let open = threaded_scan(&ip, port_beginn, port_end, scantype, 120);
+*/
+    for interface in pnet::datalink::interfaces() {
+        println!("{}", interface);
+    }
+    let ip = "192.168.0.1";
+    icmp_scan::ping_scan(ip.to_string());
 
 
-    let n_workers = 16;
-    let n_jobs = 8;
-    assert!(n_jobs <= n_workers, "too many jobs, will deadlock");
+}
+fn threaded_scan(ip: &str, port_beginn: usize, port_end: usize, scan_type:ScanType, threads: usize) -> Vec<usize> {
+    let n_workers = threads;
     let pool = ThreadPool::new(n_workers);
-
-    let an_atomic = Arc::new(AtomicUsize::new(0));
-    let barrier = Arc::new(Barrier::new(n_jobs + 1));
 
     let (tx, rx) = channel();
 
-    for _ in 0..n_jobs {
-
-        for port in port_beginn..port_end {
-            let tx = tx.clone();
-            let ip = ip.clone();
-
-            let barrier = barrier.clone();
-
-            pool.execute(move|| {
-                let p = tcp_scans::tcp_full(ip,port);
-                tx.send(p).expect("channel will be there waiting for the pool");
-                barrier.wait();
-            });
-        }
-    }
-    barrier.wait();
-    let scan_result = rx.recv();
-    println!("{:?}",scan_result.unwrap());
-    for port in scan_result {
-        println!("Port {:?} is open", port)
-    }
-}
-
-
-fn scan_ports(ip: &str, port_beginn: usize, port_end: usize, scan_type:ScanType)-> Vec<usize> {
-    let mut open_ports: Vec<usize> = vec![];
-    let (tx,rx) = channel();
     for port in port_beginn..port_end {
-        match scan_type {
-            ScanType::TcpFull => {
-                tcp_scans::port_open_tcp_full(utility::prep_ip(ip.to_string(),port), port, tx.clone())
-            },
-            ScanType::Udp => {
-                unimplemented!()
-            },
-            ScanType::TcpSyn => {
-                unimplemented!()
-            },
-            ScanType::TcpNull => {
-                unimplemented!()
-            },
-            ScanType::Udp => {
-                unimplemented!()
-            },
-            ScanType::Ping => {
-                unimplemented!()
-            },
-            ScanType::OsDetection => {
-                unimplemented!()
-            },
-        }
-        println!("Scanning Port {} on {}",port,ip);
+        let tx = tx.clone();
+        let ip = utility::prep_ip(ip.to_string(),port);
+
+
+        pool.execute(move|| {
+            let p = tcp_scans::tcp_full(ip,port);
+            if p != None {
+                tx.send(p).expect("error while sending port");
+            }
+        });
     }
-    for value in rx.iter().take(port_end - port_beginn) {
-        if value.1 {
-            open_ports.push(value.0)
-        }
+    let mut open_ports: Vec<usize> = Vec::new();
+    for received in rx {
+        open_ports.push(received.unwrap());
+        println!("Port open: {:?}",received.unwrap());
     }
     open_ports
 }
+
 
 
 fn parse_scan_type(string: String) -> ScanType {
