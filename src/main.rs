@@ -1,11 +1,13 @@
 extern crate threadpool;
 extern crate pnet;
 extern crate clap;
-
+extern crate rand;
 use std::sync::mpsc::channel;
 use threadpool::ThreadPool;
 
-use pnet::datalink::{NetworkInterface};
+use std::net::IpAddr;
+use std::net::Ipv4Addr;
+
 mod utility;
 mod tcp_scans;
 mod icmp_scan;
@@ -35,8 +37,8 @@ fn main() {
     let open = threaded_scan(&ip, port_beginn, port_end, scantype, 120);
     */
     println!("Test");
-    let ip = "192.168.0.1";
-    icmp_scan::ping_scan(ip.to_string());
+    let ip = IpAddr::V4(Ipv4Addr::new(127, 0, 0, 1));
+    icmp_scan::icmp_scan(&ip);
 }
 fn threaded_scan(ip: &str, port_beginn: usize, port_end: usize, scan_type:ScanType, threads: usize) -> Vec<usize> {
     let n_workers = threads;

@@ -7,3 +7,4 @@ authors = ["Vincent Grimmeisen <vigrimme@htwg-konstanz.de>"]
 threadpool = "1.7.1"
 pnet = "0.21.0"
 clap = "2.32.0"
+rand = "0.3"
