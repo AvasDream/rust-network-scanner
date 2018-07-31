@@ -11,7 +11,9 @@ use pnet::util::checksum;
 use rand::{self, Rng};
 
 use std::net::IpAddr;
-
+/*
+    Editor needs to run as root when opening raw sockets!
+*/
 pub fn icmp_scan(dest_ip: &IpAddr) -> bool {
     let protocol = Layer4(Ipv4(IpNextHeaderProtocols::Icmp));
     let (mut tx, mut rx) = transport_channel(256, protocol).unwrap();
