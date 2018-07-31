@@ -33,14 +33,10 @@ fn main() {
     let port_beginn = ports[0].parse::<usize>().unwrap_or(0);
     let port_end = ports[1].parse::<usize>().unwrap_or(0);
     let open = threaded_scan(&ip, port_beginn, port_end, scantype, 120);
-
-    for interface in pnet::datalink::interfaces() {
-        println!("{}", interface);
-    }*/
+    */
+    println!("Test");
     let ip = "192.168.0.1";
     icmp_scan::ping_scan(ip.to_string());
-
-
 }
 fn threaded_scan(ip: &str, port_beginn: usize, port_end: usize, scan_type:ScanType, threads: usize) -> Vec<usize> {
     let n_workers = threads;
@@ -57,14 +53,23 @@ fn threaded_scan(ip: &str, port_beginn: usize, port_end: usize, scan_type:ScanTy
             let p = tcp_scans::tcp_full(ip,port);
             if p != None {
                 tx.send(p).expect("error while sending port");
+            } else {
+                tx.send(Some(0)).expect("mimimi");
             }
         });
     }
+    println!("Active count: {}",pool.active_count());
     let mut open_ports: Vec<usize> = Vec::new();
-    for received in rx {
-        open_ports.push(received.unwrap());
-        println!("Port open: {:?}",received.unwrap());
+    for received in rx.iter() {
+        let value = received.unwrap();
+        if value != 0  {
+            open_ports.push(received.unwrap());
+            println!("Port open: {:?}",received.unwrap());
+            println!("Active count: {}",pool.active_count());
+        }
     }
+
+
     open_ports
 }
 
