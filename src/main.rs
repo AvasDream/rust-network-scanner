@@ -35,12 +35,13 @@ fn main() {
     let port_beginn = ports[0].parse::<usize>().unwrap_or(0);
     let port_end = ports[1].parse::<usize>().unwrap_or(0);
     let open = threaded_scan(&ip, port_beginn, port_end, scantype, 120);
-    for i in 0..100 {
-
+    for i in 0..1000 {
+        let ip = Ipv4Addr::new(127, 0, 0, 1);
+        tcp_scans::tcp_null(&ip, 80);
     }
     */
-    let ip = Ipv4Addr::new(127, 2, 3, 1);
-    tcp_scans::tcp_null(&ip, 80);
+    let file = "C:\\Users\\Elliot Alderson\\git\\rust-projekt\\src\\ips.txt".to_string();
+    utility::read_from_file(file);
 }
 fn threaded_scan(ip: &str, port_beginn: usize, port_end: usize, scan_type:ScanType, threads: usize) -> Vec<usize> {
     let n_workers = threads;

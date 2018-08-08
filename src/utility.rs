@@ -1,11 +1,35 @@
 use std::env;
 use std::process; //exit(0)
-use std::collections::HashMap;
 use clap::*;
-use std::thread;
-use std::sync::{Arc,Mutex,mpsc};
+use std::net::Ipv4Addr;
 
-#[allow(dead_code)]
+use std::io::{self, BufReader};
+use std::io::prelude::*;
+use std::fs::File;
+
+pub fn read_from_file(file: String)-> Vec<Ipv4Addr> {
+    let mut ipvec = Vec::new();
+
+
+    let f = File::open(file).expect("Error while opening File!");
+    let f = BufReader::new(f);
+
+    for line in f.lines() {
+        let ip = line.unwrap();
+        let mut vals = ip.split(".").collect::<Vec<&str>>();
+        //let ipv4 = Ipv4Addr::new(vals[0].as_bytes(),vals[1].as_bytes(),vals[2].as_bytes(),vals[3].as_bytes());
+        println!("{},{:?}", ip, ipv4);
+    }
+
+
+
+
+
+
+
+    ipvec.push(Ipv4Addr::new(0,0,0,0));
+    ipvec
+}
 pub fn parse_arguments()-> ArgMatches<'static> {
     let matches = App::new("Rust Network Scanner")
         .version("1.0")
