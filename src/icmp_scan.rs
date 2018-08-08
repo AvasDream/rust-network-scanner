@@ -10,11 +10,12 @@ use pnet::util::checksum;
 
 use rand::{self, Rng};
 
+use std::net::Ipv4Addr;
 use std::net::IpAddr;
 /*
     Editor needs to run as root when opening raw sockets!
 */
-pub fn icmp_scan(dest_ip: &IpAddr) -> bool {
+pub fn icmp_scan(dest_ip: &Ipv4Addr) -> bool {
     let protocol = Layer4(Ipv4(IpNextHeaderProtocols::Icmp));
     let (mut tx, mut rx) = transport_channel(256, protocol).unwrap();
     let mut echo_request_buffer = [0u8; 64];
@@ -27,7 +28,7 @@ pub fn icmp_scan(dest_ip: &IpAddr) -> bool {
     echo_request_packet.set_checksum(checksum);
 
     println!("Sending echo request: {:?}", echo_request_packet);
-    tx.send_to(echo_request_packet, *dest_ip).unwrap();
+    tx.send_to(echo_request_packet, IpAddr::V4(*dest_ip)).unwrap();
 
     let mut iter = icmp_packet_iter(&mut rx);
     loop {

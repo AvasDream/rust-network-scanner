@@ -1,6 +1,7 @@
 use std::thread;
 use std::net::*;
 use std::net::IpAddr;
+use std::net::Ipv4Addr;
 
 use pnet::packet::{Packet, MutablePacket, tcp};
 use pnet::packet::ip::IpNextHeaderProtocols;
@@ -23,10 +24,10 @@ pub fn tcp_full(addr: String, port:usize)-> Option<usize> {
     }
 }
 
-pub fn tcp_null(addr: &IpAddr, port: usize)-> Option<usize> {
-    let protocol = Layer4(Ipv4(IpNextHeaderProtocols::Tcp));
+pub fn tcp_null(addr: &Ipv4Addr, port: usize)-> Option<usize> {
+    let protocol = Layer4(Ipv4(IpNextHeaderProtocols::Ipv4));
     let (mut tx, mut rx) = transport_channel(256, protocol).unwrap();
-    let mut tcp_request_buffer = [0u8;64];
+    let mut tcp_request_buffer = [0u8;128];
     let mut tcp_packet = MutableTcpPacket::new(&mut tcp_request_buffer).unwrap();
     let tcp_struct = Tcp {
         source: 443,
@@ -50,12 +51,11 @@ pub fn tcp_null(addr: &IpAddr, port: usize)-> Option<usize> {
     let mut ipv4_packet = MutableIpv4Packet::new( tcp_packet.packet_mut()).unwrap();
     ipv4_packet.set_version(4);
     println!("Ipv4 Packet:{:?}\n\n",ipv4_packet);
+    let source = Ipv4Addr::new(127, 0, 0, 1);
+    ipv4_packet.set_source(source);
+    ipv4_packet.set_destination(*addr);
 
-
-
-
-
-    let send = tx.send_to(ipv4_packet, *addr);
+    let send = tx.send_to(ipv4_packet, IpAddr::V4(*addr));
     println!("Send: {:?}\n\n", send);
 
     Some(0)
