@@ -9,25 +9,17 @@ use std::fs::File;
 
 pub fn read_from_file(file: String)-> Vec<Ipv4Addr> {
     let mut ipvec = Vec::new();
-
-
     let f = File::open(file).expect("Error while opening File!");
     let f = BufReader::new(f);
-
     for line in f.lines() {
         let ip = line.unwrap();
         let mut vals = ip.split(".").collect::<Vec<&str>>();
-        //let ipv4 = Ipv4Addr::new(vals[0].as_bytes(),vals[1].as_bytes(),vals[2].as_bytes(),vals[3].as_bytes());
-        println!("{},{:?}", ip, ipv4);
+        let ipv4 = Ipv4Addr::new(vals[0].to_string().parse::<u8>().unwrap(),
+                                        vals[1].to_string().parse::<u8>().unwrap(),
+                                        vals[2].to_string().parse::<u8>().unwrap(),
+                                        vals[3].to_string().parse::<u8>().unwrap());
+        ipvec.push(ipv4);
     }
-
-
-
-
-
-
-
-    ipvec.push(Ipv4Addr::new(0,0,0,0));
     ipvec
 }
 pub fn parse_arguments()-> ArgMatches<'static> {

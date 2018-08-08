@@ -41,7 +41,10 @@ fn main() {
     }
     */
     let file = "C:\\Users\\Elliot Alderson\\git\\rust-projekt\\src\\ips.txt".to_string();
-    utility::read_from_file(file);
+    let ips = utility::read_from_file(file);
+    for ip in ips {
+        println!("{:?}",ip);
+    }
 }
 fn threaded_scan(ip: &str, port_beginn: usize, port_end: usize, scan_type:ScanType, threads: usize) -> Vec<usize> {
     let n_workers = threads;
