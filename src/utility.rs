@@ -153,3 +153,45 @@ mod tests {
     }
 }
 
+
+/*
+
+Code for future tests:
+
+
+
+let mut ports: Vec<usize>= Vec::new();
+    ports.push(80);
+    ports.push(443);
+    ports.push(445);
+    let mut ips: Vec<Ipv4Addr>= Vec::new();
+    ips.push(Ipv4Addr::new(12,23,34,45));
+    ips.push(Ipv4Addr::new(12,223,34,45));
+    ips.push(Ipv4Addr::new(212,23,34,45));
+    ips.push(Ipv4Addr::new(122,23,34,45));
+    let scantype: ScanType = ScanType::TcpFull;
+    let scantype1: ScanType = ScanType::TcpFull;
+    let scantype2: ScanType = ScanType::TcpFull;
+    let res1 = ScanResult {
+        ports: ports.clone(),
+        ip: ips[0],
+        scantype: scantype
+    };
+    let res2 = ScanResult {
+        ports: ports.clone(),
+        ip: ips[0],
+        scantype: scantype1
+    };
+    let res3 = ScanResult {
+        ports: ports.clone(),
+        ip: ips[0],
+        scantype: scantype2
+    };
+    let mut results: Vec<ScanResult>= Vec::new();
+    results.push(res1);
+    results.push(res2);
+    results.push(res3);
+    let out = utility::prepare_output(results);
+
+
+*/
