@@ -8,29 +8,30 @@ use std::io::prelude::*;
 use std::fs::File;
 use ScanType;
 use iana_mapping;
+use ScanResult;
 
 
-
-pub fn prepare_output(ports: Vec<usize>, hosts: Vec<Ipv4Addr>, scantype: ScanType)-> String {
+pub fn prepare_output(results: Vec<ScanResult>) -> String {
     let mut output = "".to_string();
-    let portmap = match scantype {
+
+    let portmap = match results[2].scantype {
         ScanType::TcpFull => iana_mapping::get_tcp_map(),
         ScanType::Udp => iana_mapping::get_udp_map(),
         _ => HashMap::new()
     };
-    for host in hosts {
-        output += &format!("Scan result for {}\n",host.to_string());
+    for result in results {
+        output += &format!("\nScan result for {}\n",result.ip.to_string());
         /*
         Achtung ausnahmefall ICMP Scan, da keine Ports nötig!
         */
         if portmap.len() == 0 {
-            if ports.len() == 1 {
+            if result.ports.len() == 1 {
                 output += &format!("Host is up!\n");
             } else {
                 output += &format!("Host is down!\n");
             }
         } else {
-            for port in ports.clone() {
+            for port in result.ports {
                 output += &format!("Port {} | {:?} open.\n",port.to_string(),portmap.get(&(port as u64)).unwrap());
             }
 

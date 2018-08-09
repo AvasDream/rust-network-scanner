@@ -19,6 +19,11 @@ pub enum ScanType{
      Udp,
      Ping,
  }
+pub struct ScanResult {
+    ports: Vec<usize>,
+    ip: Ipv4Addr,
+    scantype: ScanType
+}
 /*
     Bugs:
     - Programm not exiting after run with threadpool.
@@ -51,7 +56,28 @@ fn main() {
     ips.push(Ipv4Addr::new(212,23,34,45));
     ips.push(Ipv4Addr::new(122,23,34,45));
     let scantype: ScanType = ScanType::TcpFull;
-    let out = utility::prepare_output(ports,ips,scantype);
+    let scantype1: ScanType = ScanType::TcpFull;
+    let scantype2: ScanType = ScanType::TcpFull;
+    let res1 = ScanResult {
+        ports: ports.clone(),
+        ip: ips[0],
+        scantype: scantype
+    };
+    let res2 = ScanResult {
+        ports: ports.clone(),
+        ip: ips[0],
+        scantype: scantype1
+    };
+    let res3 = ScanResult {
+        ports: ports.clone(),
+        ip: ips[0],
+        scantype: scantype2
+    };
+    let mut results: Vec<ScanResult>= Vec::new();
+    results.push(res1);
+    results.push(res2);
+    results.push(res3);
+    let out = utility::prepare_output(results);
     println!("{}",out);
 }
 fn threaded_scan(ip: &str, port_beginn: usize, port_end: usize, scan_type:ScanType, threads: usize) -> Vec<usize> {
