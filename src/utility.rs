@@ -6,21 +6,50 @@ use std::net::Ipv4Addr;
 use std::io::{self, BufReader};
 use std::io::prelude::*;
 use std::fs::File;
+use ScanType;
 
+
+pub fn prepare_output(ports: Vec<usize>, hosts: Vec<Ipv4Addr>, scantype: ScanType)-> String {
+    let mut output = "".to_string();
+    /*
+    for host in hosts {
+        output = format!("Scan result for {}\n",host.to_string());
+        for port in ports {
+            output + "Port " + &(port.to_string()) + "is open" + "\n";
+        }
+    }
+    */
+    output
+}
 pub fn read_from_file(file: String)-> Vec<Ipv4Addr> {
     let mut ipvec = Vec::new();
-    let f = File::open(file).expect("Error while opening File!");
-    let f = BufReader::new(f);
+    let file = match File::open(file.clone()) {
+        Err(err) => panic!("Couldn't open file {}", file),
+        Ok(file) => file,
+    };
+    let f = BufReader::new(file);
     for line in f.lines() {
         let ip = line.unwrap();
-        let mut vals = ip.split(".").collect::<Vec<&str>>();
-        let ipv4 = Ipv4Addr::new(vals[0].to_string().parse::<u8>().unwrap(),
-                                        vals[1].to_string().parse::<u8>().unwrap(),
-                                        vals[2].to_string().parse::<u8>().unwrap(),
-                                        vals[3].to_string().parse::<u8>().unwrap());
+        let ipv4 = string_to_ipv4(ip);
         ipvec.push(ipv4);
     }
     ipvec
+}
+
+fn string_to_ipv4(ip: String)-> Ipv4Addr {
+    let mut vals = ip.split(".").collect::<Vec<&str>>();
+    let ipv4 = Ipv4Addr::new(vals[0].to_string().parse::<u8>().unwrap(),
+                             vals[1].to_string().parse::<u8>().unwrap(),
+                             vals[2].to_string().parse::<u8>().unwrap(),
+                             vals[3].to_string().parse::<u8>().unwrap());
+    ipv4
+}
+pub fn write_to_file(filename: String, data: String) {
+    let mut file = match File::create(filename.clone()) {
+        Err(err) => panic!("Couldn't create file {}", filename),
+        Ok(file) => file,
+    };
+    file.write( data.as_bytes()).expect("error while writing to file");
 }
 pub fn parse_arguments()-> ArgMatches<'static> {
     let matches = App::new("Rust Network Scanner")

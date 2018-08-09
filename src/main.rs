@@ -40,11 +40,8 @@ fn main() {
         tcp_scans::tcp_null(&ip, 80);
     }
     */
-    let file = "C:\\Users\\Elliot Alderson\\git\\rust-projekt\\src\\ips.txt".to_string();
-    let ips = utility::read_from_file(file);
-    for ip in ips {
-        println!("{:?}",ip);
-    }
+    let file = "C:\\Users\\Tyrell Wellick\\git\\rust-projekt\\src\\test.txt".to_string();
+    utility::write_to_file(file, "Hallo Welt".to_string());
 }
 fn threaded_scan(ip: &str, port_beginn: usize, port_end: usize, scan_type:ScanType, threads: usize) -> Vec<usize> {
     let n_workers = threads;
