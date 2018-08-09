@@ -2,23 +2,41 @@ use std::env;
 use std::process; //exit(0)
 use clap::*;
 use std::net::Ipv4Addr;
-
+use std::collections::HashMap;
 use std::io::{self, BufReader};
 use std::io::prelude::*;
 use std::fs::File;
 use ScanType;
+use iana_mapping;
+
 
 
 pub fn prepare_output(ports: Vec<usize>, hosts: Vec<Ipv4Addr>, scantype: ScanType)-> String {
     let mut output = "".to_string();
-    /*
+    let portmap = match scantype {
+        ScanType::TcpFull => iana_mapping::get_tcp_map(),
+        ScanType::Udp => iana_mapping::get_udp_map(),
+        _ => HashMap::new()
+    };
     for host in hosts {
-        output = format!("Scan result for {}\n",host.to_string());
-        for port in ports {
-            output + "Port " + &(port.to_string()) + "is open" + "\n";
+        output += &format!("Scan result for {}\n",host.to_string());
+        /*
+        Achtung ausnahmefall ICMP Scan, da keine Ports nötig!
+        */
+        if portmap.len() == 0 {
+            if ports.len() == 1 {
+                output += &format!("Host is up!\n");
+            } else {
+                output += &format!("Host is down!\n");
+            }
+        } else {
+            for port in ports.clone() {
+                output += &format!("Port {} | {:?} open.\n",port.to_string(),portmap.get(&(port as u64)).unwrap());
+            }
+
         }
     }
-    */
+
     output
 }
 pub fn read_from_file(file: String)-> Vec<Ipv4Addr> {
@@ -64,7 +82,6 @@ pub fn parse_arguments()-> ArgMatches<'static> {
 Scan Types:
 P          Ping scan
 TF         Tcp full scan
-TS         Tcp Syn scan
 TN         Tcp Null scan
 U          Udp scan
 

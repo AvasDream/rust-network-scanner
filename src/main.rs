@@ -11,14 +11,13 @@ use std::net::Ipv4Addr;
 mod utility;
 mod tcp_scans;
 mod icmp_scan;
+mod iana_mapping;
 
 pub enum ScanType{
      TcpFull,
-     TcpSyn,
      TcpNull,
      Udp,
-    Ping,
-    OsDetection
+     Ping,
  }
 /*
     Bugs:
@@ -39,9 +38,21 @@ fn main() {
         let ip = Ipv4Addr::new(127, 0, 0, 1);
         tcp_scans::tcp_null(&ip, 80);
     }
-    */
     let file = "C:\\Users\\Tyrell Wellick\\git\\rust-projekt\\src\\test.txt".to_string();
     utility::write_to_file(file, "Hallo Welt".to_string());
+    */
+    let mut ports: Vec<usize>= Vec::new();
+    ports.push(80);
+    ports.push(443);
+    ports.push(445);
+    let mut ips: Vec<Ipv4Addr>= Vec::new();
+    ips.push(Ipv4Addr::new(12,23,34,45));
+    ips.push(Ipv4Addr::new(12,223,34,45));
+    ips.push(Ipv4Addr::new(212,23,34,45));
+    ips.push(Ipv4Addr::new(122,23,34,45));
+    let scantype: ScanType = ScanType::TcpFull;
+    let out = utility::prepare_output(ports,ips,scantype);
+    println!("{}",out);
 }
 fn threaded_scan(ip: &str, port_beginn: usize, port_end: usize, scan_type:ScanType, threads: usize) -> Vec<usize> {
     let n_workers = threads;
@@ -86,14 +97,8 @@ fn parse_scan_type(string: String) -> ScanType {
         "P" => {
             scantype = ScanType::Ping;
         },
-        "O" => {
-            scantype = ScanType::OsDetection;
-        },
         "TF" => {
             scantype = ScanType::TcpFull;
-        },
-        "TS" => {
-            scantype = ScanType::TcpSyn;
         },
         "TN" => {
             scantype = ScanType::TcpNull;
