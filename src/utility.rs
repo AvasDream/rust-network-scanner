@@ -6,28 +6,32 @@ use std::collections::HashMap;
 use std::io::{self, BufReader};
 use std::io::prelude::*;
 use std::fs::File;
+use std::path::Path;
 use ScanType;
 use iana_mapping;
 use ScanResult;
 use ScanConfig;
-use std::path::Path;
 
 
 pub fn prepare_output(results: Vec<ScanResult>) -> String {
-    let mut output = "".to_string();
+    let mut output = "\
+ _____         _      _____     _                 _      _____
+| __  |_ _ ___| |_   |   | |___| |_ _ _ _ ___ ___| |_   |   __|___ ___ ___ ___ ___ ___
+|    -| | |_ -|  _|  | | | | -_|  _| | | | . |  _| '_|  |__   |  _| .'|   |   | -_|  _|
+|__|__|___|___|_|    |_|___|___|_| |_____|___|_| |_,_|  |_____|___|__,|_|_|_|_|___|_|
 
-    let portmap = match results[2].scantype {
+    ".to_string();
+    // Hacky and not pretty solution with index!
+    let portmap = match results[0].scantype {
         ScanType::TcpFull => iana_mapping::get_tcp_map(),
         ScanType::Udp => iana_mapping::get_udp_map(),
         _ => HashMap::new()
     };
     for result in results {
         output += &format!("\nScan result for {}\n",result.ip.to_string());
-        /*
-        Achtung ausnahmefall ICMP Scan, da keine Ports nötig!
-        */
+        // If ICMP scan
         if portmap.len() == 0 {
-            if result.ports.len() == 1 {
+            if result.is_up {
                 output += &format!("Host is up!\n");
             } else {
                 output += &format!("Host is down!\n");
@@ -68,34 +72,84 @@ fn string_to_ipv4(ip: String)-> Ipv4Addr {
     ipv4
 }
 
-
+/*
+Write Data to File
+*/
 pub fn write_to_file(filename: String, data: String) {
     let mut file = match File::create(filename.clone()) {
-        Err(err) => panic!("Couldn't create file {}", filename),
+        Err(err) => panic!("Could not create file {}\n Because: {} \n", filename, err.to_string()),
         Ok(file) => file,
     };
     file.write( data.as_bytes()).expect("error while writing to file");
 }
+/*
+Convert arguments from clap to ScanConfig
+*/
 pub fn get_config()-> ScanConfig {
     let arguments = parse_arguments();
-    let ports = parse_ports(arguments.value_of("PORTS").unwrap().to_string());
-    let ip = arguments.value_of("IP").unwrap().to_string();
+    // Check if single ip or list is there
+    if (arguments.is_present("IP") && arguments.is_present("IP_File") == false) {
+        println!("You have to supply an IP or a FILE to read ips from!");
+        exit_on_error();
+    }
+    // Get scantype first from args then parse to ScanType
     let scantype = parse_scan_type(arguments.value_of("SCANTYPE").unwrap().to_string());
-    let port_beginn = ports[0].parse::<u16>().unwrap_or(0);
-    let port_end = ports[1].parse::<u16>().unwrap_or(0);
+    // Get and prepare ports
+    let mut port_beginn: u16 = 999;
+    let mut port_end: u16 = 999;
+    match scantype {
+        ScanType::Ping => {
+            port_beginn = 0;
+            port_end = 0;
+        },
+        ScanType::TcpFull => {
+            let ports = parse_ports(arguments.value_of("PORTS").unwrap().to_string());
+            port_beginn = ports[0].parse::<u16>().unwrap_or(0);
+            port_end = ports[1].parse::<u16>().unwrap_or(0);
+        },
+        ScanType::Udp => {
+            let ports = parse_ports(arguments.value_of("PORTS").unwrap().to_string());
+            port_beginn = ports[0].parse::<u16>().unwrap_or(0);
+            port_end = ports[1].parse::<u16>().unwrap_or(0);
+        },
+        _ => {
+            println!("Error while parsing scan type!");
+            exit_on_error();
+        },
+    }
+    //Get Ip and add to Vec<Ipv4Addr>
+    let mut ips: Vec<Ipv4Addr> = Vec::new();
+    if arguments.is_present("IP") {
+        let ip = arguments.value_of("IP").unwrap().to_string();
+        let mut ipv4 = string_to_ipv4(ip);
+        ips.push(ipv4);
+    }
+    let mut path = "".to_string();
+    if arguments.is_present("IP_FILE") {
+        path = arguments.value_of("IP_FILE").unwrap().to_string();
+        if Path::new(&path).exists() == false {
+            println!("Can not open file {}!",path);
+            exit_on_error();
+        }
+        ips = read_from_file(path.clone());
+    }
     let scanconfig: ScanConfig = ScanConfig {
-        ips: vec![Ipv4Addr::new(0,0,0,0)],
-        start_port: 0,
-        end_port: 0,
-        scantype: ScanType::TcpFull,
-        to_file: "/root".to_string()
+        ips: ips,
+        start_port: port_beginn,
+        end_port: port_end,
+        scantype: scantype,
+        to_file: path
     };
     scanconfig
 }
+
+/*
+Parse arguments from env::args with clap
+*/
 pub fn parse_arguments()-> ArgMatches<'static> {
     let matches = App::new("Rust Network Scanner")
         .version("1.0")
-        .author("Vincent Grimmeisen <vincent.grimmeisen@htwg-konstanz.de>")
+        .author("Vincent G. <vigrimme@htwg-konstanz.de>")
         .about("
  _____         _      _____     _                 _      _____
 | __  |_ _ ___| |_   |   | |___| |_ _ _ _ ___ ___| |_   |   __|___ ___ ___ ___ ___ ___
@@ -116,19 +170,25 @@ U          Udp scan
             .required(true)
             .takes_value(true))
         .arg(Arg::with_name("IP")
-            .help("Sets the IP or IP range to use")
+            .help("Set the IP to use")
             .short("i")
             .long("ip")
-            .required(true)
+            .required(false)
+            .takes_value(true))
+        .arg(Arg::with_name("IP_FILE")
+            .help("Set the File to read ips from")
+            .short("l")
+            .long("iplist")
+            .required(false)
             .takes_value(true))
         .arg(Arg::with_name("PORTS")
-            .help("Sets the Port range to use")
+            .help("Set the Port range to use")
             .short("p")
             .long("ports")
             .required(true)
             .takes_value(true))
         .arg(Arg::with_name("OUTPUT")
-            .help("Sets the output file")
+            .help("Set the output file")
             .short("o")
             .long("output")
             .required(false)
@@ -163,6 +223,25 @@ pub fn exit_on_error(){
     process::exit(0);
 }
 
+fn parse_scan_type(string: String) -> ScanType {
+    let mut scantype: ScanType = ScanType::Ping;
+    match string.as_ref() {
+        "P" => {
+            scantype = ScanType::Ping;
+        },
+        "TF" => {
+            scantype = ScanType::TcpFull;
+        },
+        "U" => {
+            scantype = ScanType::Udp;
+        },
+        _ => {
+            println!("Error while parsing scan type!");
+            exit_on_error();
+        },
+    }
+    return scantype
+}
 
 
 
@@ -175,28 +254,6 @@ mod tests {
     }
 }
 
-fn parse_scan_type(string: String) -> ScanType {
-    let mut scantype: ScanType = ScanType::Ping;
-    match string.as_ref() {
-        "P" => {
-            scantype = ScanType::Ping;
-        },
-        "TF" => {
-            scantype = ScanType::TcpFull;
-        },
-        "TN" => {
-            scantype = ScanType::TcpNull;
-        },
-        "U" => {
-            scantype = ScanType::Udp;
-        },
-        _ => {
-            println!("Error while parsing scan type");
-            exit_on_error();
-        },
-    }
-    return scantype
-}
 
 /*
 

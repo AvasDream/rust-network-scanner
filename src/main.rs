@@ -14,16 +14,17 @@ mod tcp_scans;
 mod icmp_scan;
 mod iana_mapping;
 
+#[derive(PartialEq)]
 pub enum ScanType{
      TcpFull,
-     TcpNull,
      Udp,
      Ping,
  }
 pub struct ScanResult {
     ports: Vec<u16>,
     ip: Ipv4Addr,
-    scantype: ScanType
+    scantype: ScanType,
+    is_up: bool
 }
 pub struct ScanConfig {
     ips: Vec<Ipv4Addr>,
@@ -39,8 +40,11 @@ pub struct ScanConfig {
 */
 
 fn main() {
-
-
+    let scanconfig = utility::get_config();
+    println!("{:?}",scanconfig.ips);
+    println!("{:?}",scanconfig.start_port);
+    println!("{:?}",scanconfig.end_port);
+    println!("{:?}",scanconfig.to_file);
 }
 fn threaded_scan(ip: &str, port_beginn: u16, port_end: u16, scan_type:ScanType, threads: usize) -> Vec<u16> {
     let n_workers = threads;
