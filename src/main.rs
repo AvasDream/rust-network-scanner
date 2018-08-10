@@ -7,6 +7,7 @@ use threadpool::ThreadPool;
 
 use std::net::IpAddr;
 use std::net::Ipv4Addr;
+use std::path::Path;
 
 mod utility;
 mod tcp_scans;
@@ -23,6 +24,13 @@ pub struct ScanResult {
     ports: Vec<usize>,
     ip: Ipv4Addr,
     scantype: ScanType
+}
+pub struct ScanConfig {
+    ips: vec<Ipv4Addr>,
+    start_port: usize,
+    end_port: usize,
+    scantype: ScanType,
+    to_file: Path,
 }
 /*
     Bugs:
