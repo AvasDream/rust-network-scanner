@@ -14,7 +14,7 @@ use pnet::packet::ipv4::MutableIpv4Packet;
 use pnet::util::checksum;
 
 
-pub fn tcp_full(addr: String, port:usize)-> Option<usize> {
+pub fn tcp_full(addr: String, port:u16)-> Option<u16> {
     println!("{}",addr);
     let addr = addr;
     if let Ok(stream) = TcpStream::connect(addr) {
@@ -24,7 +24,7 @@ pub fn tcp_full(addr: String, port:usize)-> Option<usize> {
     }
 }
 
-pub fn tcp_null(addr: &Ipv4Addr, port: usize)-> Option<usize> {
+pub fn tcp_null(addr: &Ipv4Addr, port: u16)-> Option<u16> {
     let protocol = Layer4(Ipv4(IpNextHeaderProtocols::Ipv4));
     let (mut tx, mut rx) = transport_channel(256, protocol).unwrap();
     let mut tcp_request_buffer = [0u8;128];

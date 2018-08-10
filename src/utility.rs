@@ -81,8 +81,8 @@ pub fn get_config()-> ScanConfig {
     let ports = parse_ports(arguments.value_of("PORTS").unwrap().to_string());
     let ip = arguments.value_of("IP").unwrap().to_string();
     let scantype = parse_scan_type(arguments.value_of("SCANTYPE").unwrap().to_string());
-    let port_beginn = ports[0].parse::<usize>().unwrap_or(0);
-    let port_end = ports[1].parse::<usize>().unwrap_or(0);
+    let port_beginn = ports[0].parse::<u16>().unwrap_or(0);
+    let port_end = ports[1].parse::<u16>().unwrap_or(0);
     let scanconfig: ScanConfig = ScanConfig {
         ips: vec![Ipv4Addr::new(0,0,0,0)],
         start_port: 0,
@@ -137,7 +137,7 @@ U          Udp scan
     matches
 }
 
-pub fn prep_ip (ip: String, port: usize) -> String {
+pub fn prep_ip (ip: String, port: u16) -> String {
     let addr = ip.to_string() + ":" + &port.to_string();
     addr
 }
@@ -148,14 +148,14 @@ pub fn parse_ports (ports: String) -> Vec<String> {
         exit_on_error()
     }
     let res: Vec<String> = ports.split("-").map(|s| s.to_string()).collect();
-    if res[0].parse::<usize>().is_err() || res[1].parse::<usize>().is_err() || res.len() < 2 {
+    if res[0].parse::<u16>().is_err() || res[1].parse::<u16>().is_err() || res.len() < 2 {
         exit_on_error();
     }
     res
 }
 
-pub fn str_to_usize(string: String) -> Option<usize> {
-    let ret = string.parse::<usize>().unwrap();
+pub fn str_to_u16(string: String) -> Option<u16> {
+    let ret = string.parse::<u16>().unwrap();
     Some(ret)
 }
 pub fn exit_on_error(){
@@ -204,7 +204,7 @@ Code for future tests:
 
 
 
-let mut ports: Vec<usize>= Vec::new();
+let mut ports: Vec<u16>= Vec::new();
     ports.push(80);
     ports.push(443);
     ports.push(445);

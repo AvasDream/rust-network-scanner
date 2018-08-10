@@ -21,7 +21,7 @@ pub enum ScanType{
      Ping,
  }
 pub struct ScanResult {
-    ports: Vec<usize>,
+    ports: Vec<u16>,
     ip: Ipv4Addr,
     scantype: ScanType
 }
@@ -39,24 +39,10 @@ pub struct ScanConfig {
 */
 
 fn main() {
-    /*
-    let arguments = utility::parse_arguments();
-    let ports = utility::parse_ports(arguments.value_of("PORTS").unwrap().to_string());
-    let ip = arguments.value_of("IP").unwrap().to_string();
-    let scantype = parse_scan_type(arguments.value_of("SCANTYPE").unwrap().to_string());
-    let port_beginn = ports[0].parse::<usize>().unwrap_or(0);
-    let port_end = ports[1].parse::<usize>().unwrap_or(0);
-    let open = threaded_scan(&ip, port_beginn, port_end, scantype, 120);
-    for i in 0..1000 {
-        let ip = Ipv4Addr::new(127, 0, 0, 1);
-        tcp_scans::tcp_null(&ip, 80);
-    }
-    let file = "C:\\Users\\Tyrell Wellick\\git\\rust-projekt\\src\\test.txt".to_string();
-    utility::write_to_file(file, "Hallo Welt".to_string());
-    */
+
 
 }
-fn threaded_scan(ip: &str, port_beginn: usize, port_end: usize, scan_type:ScanType, threads: usize) -> Vec<usize> {
+fn threaded_scan(ip: &str, port_beginn: u16, port_end: u16, scan_type:ScanType, threads: usize) -> Vec<u16> {
     let n_workers = threads;
     let pool = ThreadPool::new(n_workers);
 
@@ -77,7 +63,7 @@ fn threaded_scan(ip: &str, port_beginn: usize, port_end: usize, scan_type:ScanTy
         });
     }
     println!("Active count: {}",pool.active_count());
-    let mut open_ports: Vec<usize> = Vec::new();
+    let mut open_ports: Vec<u16> = Vec::new();
     for received in rx.iter() {
         let value = received.unwrap();
         if value != 0  {

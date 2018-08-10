@@ -3,7 +3,7 @@ use std::net::*;
 use std::sync::mpsc::{channel,Sender}; //channel
 
 #[allow(dead_code)]
-pub fn port_open_udp(ip: String, port: usize, tx: Sender<(usize,bool)>, socket: UdpSocket) {
+pub fn port_open_udp(ip: String, port: u16, tx: Sender<(u16,bool)>, socket: UdpSocket) {
     unimplemented!();
     /*
         thread::spawn(move || {
