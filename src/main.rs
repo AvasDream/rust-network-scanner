@@ -15,6 +15,7 @@ mod icmp_scan;
 mod iana_mapping;
 
 #[derive(PartialEq)]
+#[derive(Clone, Copy)]
 pub enum ScanType{
      TcpFull,
      Udp,
@@ -33,6 +34,18 @@ pub struct ScanConfig {
     scantype: ScanType,
     to_file: String,
 }
+impl Clone for ScanConfig {
+    fn clone(&self) -> ScanConfig {
+        let clone = ScanConfig {
+            ips: self.ips.clone(),
+            start_port: self.start_port.clone(),
+            end_port: self.end_port.clone(),
+            scantype: self.scantype,
+            to_file: self.to_file.clone(),
+        };
+        clone
+    }
+}
 /*
     Bugs:
     - Programm not exiting after run with threadpool.
@@ -45,6 +58,26 @@ fn main() {
     println!("{:?}",scanconfig.start_port);
     println!("{:?}",scanconfig.end_port);
     println!("{:?}",scanconfig.to_file);
+    let to_file = scanconfig.to_file.clone();
+    let mut output = "".to_string();
+    match scanconfig.scantype {
+        ScanType::TcpFull => {
+
+        },
+        ScanType::Udp => {
+
+        },
+        ScanType::Ping => {
+            let results = icmp_scan::ping_scan(scanconfig.clone());
+            output = utility::prepare_output(results);
+        },
+    }
+    if to_file != "" {
+        println!("{}",output);
+        utility::write_to_file(scanconfig.to_file, output);
+    } else {
+        println!("{}",output);
+    }
 }
 fn threaded_scan(ip: &str, port_beginn: u16, port_end: u16, scan_type:ScanType, threads: usize) -> Vec<u16> {
     let n_workers = threads;

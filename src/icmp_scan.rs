@@ -9,9 +9,25 @@ use std::net::IpAddr;
 use pnet::transport::{icmp_packet_iter, transport_channel};
 use pnet::transport::TransportProtocol::Ipv4;
 use pnet::transport::TransportChannelType::Layer4;
+use ScanConfig;
+use ScanResult;
+use ScanType;
 
 
-pub fn icmp_scan(dest_ip: &Ipv4Addr) -> bool {
+pub fn ping_scan(scanconfig: ScanConfig)-> Vec<ScanResult> {
+    let mut results: Vec<ScanResult> = Vec::new();
+    for ip in scanconfig.ips {
+        let mut scanresult = ScanResult {
+            ports: Vec::new(),
+            ip: ip,
+            scantype: ScanType::Ping,
+            is_up: icmp_scan(&ip),
+        };
+        results.push(scanresult);
+    }
+    results
+}
+fn icmp_scan(dest_ip: &Ipv4Addr) -> bool {
     let protocol = Layer4(Ipv4(IpNextHeaderProtocols::Icmp));
     let (mut tx, mut rx) = transport_channel(256, protocol).unwrap();
     let mut req_buffer = [0u8; 64];

@@ -14,7 +14,7 @@ use ScanConfig;
 
 
 pub fn prepare_output(results: Vec<ScanResult>) -> String {
-    let mut output = "\
+    let mut output = "
  _____         _      _____     _                 _      _____
 | __  |_ _ ___| |_   |   | |___| |_ _ _ _ ___ ___| |_   |   __|___ ___ ___ ___ ___ ___
 |    -| | |_ -|  _|  | | | | -_|  _| | | | . |  _| '_|  |__   |  _| .'|   |   | -_|  _|
@@ -87,7 +87,6 @@ Convert arguments from clap to ScanConfig
 pub fn get_config()-> ScanConfig {
     let arguments = parse_arguments();
     // Check if single ip or list is there.
-    // ToDo: Feels like this is to complicated.
     if arguments.is_present("IP") == false && arguments.is_present("IP_FILE") == false {
         println!("You have to supply an IP or a FILE to read ips from!");
         exit_on_error();
@@ -148,7 +147,7 @@ pub fn get_config()-> ScanConfig {
 /*
 Parse arguments from env::args with clap
 */
-pub fn parse_arguments()-> ArgMatches<'static> {
+fn parse_arguments()-> ArgMatches<'static> {
     let matches = App::new("Rust Network Scanner")
         .version("1.0")
         .author("Vincent G. <vigrimme@htwg-konstanz.de>")
@@ -163,7 +162,14 @@ P          Ping scan
 TF         Tcp full scan
 U          Udp scan
 
-            RNS is a free Network Scanner intended to work like the glorious nmap.")
+RNS is a free Network Scanner.
+
+Usage examples:
+./rns -i 192.168.0.1 -p 0-100 -s TF
+./rns -l C:\\ips.txt  -p 0-100 -s U
+./rns -l C:\\ips.txt  -p 0-100 -s P
+./rns -i 192.168.0.1 -s P
+")
         .arg(Arg::with_name("SCANTYPE")
             .short("s")
             .long("scantype")
@@ -175,12 +181,14 @@ U          Udp scan
             .short("i")
             .long("ip")
             .required(false)
+            .required_if("IP_FILE", "")
             .takes_value(true))
         .arg(Arg::with_name("IP_FILE")
             .help("Set the File to read ips from")
             .short("l")
             .long("iplist")
             .required(false)
+            .required_if("IP", "")
             .takes_value(true))
         .arg(Arg::with_name("PORTS")
             .help("Set the Port range to use")
