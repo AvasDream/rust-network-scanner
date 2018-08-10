@@ -40,7 +40,6 @@ pub fn prepare_output(results: Vec<ScanResult>) -> String {
             for port in result.ports {
                 output += &format!("Port {} | {:?} open.\n",port.to_string(),portmap.get(&(port as u64)).unwrap());
             }
-
         }
     }
 
@@ -87,8 +86,9 @@ Convert arguments from clap to ScanConfig
 */
 pub fn get_config()-> ScanConfig {
     let arguments = parse_arguments();
-    // Check if single ip or list is there
-    if (arguments.is_present("IP") && arguments.is_present("IP_File") == false) {
+    // Check if single ip or list is there.
+    // ToDo: Feels like this is to complicated.
+    if arguments.is_present("IP") == false && arguments.is_present("IP_FILE") == false {
         println!("You have to supply an IP or a FILE to read ips from!");
         exit_on_error();
     }
@@ -127,10 +127,12 @@ pub fn get_config()-> ScanConfig {
     let mut path = "".to_string();
     if arguments.is_present("IP_FILE") {
         path = arguments.value_of("IP_FILE").unwrap().to_string();
+        /*
         if Path::new(&path).exists() == false {
             println!("Can not open file {}!",path);
             exit_on_error();
         }
+        */
         ips = read_from_file(path.clone());
     }
     let scanconfig: ScanConfig = ScanConfig {
@@ -159,7 +161,6 @@ pub fn parse_arguments()-> ArgMatches<'static> {
 Scan Types:
 P          Ping scan
 TF         Tcp full scan
-TN         Tcp Null scan
 U          Udp scan
 
             RNS is a free Network Scanner intended to work like the glorious nmap.")
@@ -185,7 +186,9 @@ U          Udp scan
             .help("Set the Port range to use")
             .short("p")
             .long("ports")
-            .required(true)
+            .required(false)
+            .required_if("SCANTYPE","TF")
+            .required_if("SCANTYPE","U")
             .takes_value(true))
         .arg(Arg::with_name("OUTPUT")
             .help("Set the output file")
