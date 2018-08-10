@@ -9,6 +9,8 @@ use std::fs::File;
 use ScanType;
 use iana_mapping;
 use ScanResult;
+use ScanConfig;
+use std::path::Path;
 
 
 pub fn prepare_output(results: Vec<ScanResult>) -> String {
@@ -55,6 +57,8 @@ pub fn read_from_file(file: String)-> Vec<Ipv4Addr> {
     ipvec
 }
 
+
+
 fn string_to_ipv4(ip: String)-> Ipv4Addr {
     let mut vals = ip.split(".").collect::<Vec<&str>>();
     let ipv4 = Ipv4Addr::new(vals[0].to_string().parse::<u8>().unwrap(),
@@ -63,12 +67,30 @@ fn string_to_ipv4(ip: String)-> Ipv4Addr {
                              vals[3].to_string().parse::<u8>().unwrap());
     ipv4
 }
+
+
 pub fn write_to_file(filename: String, data: String) {
     let mut file = match File::create(filename.clone()) {
         Err(err) => panic!("Couldn't create file {}", filename),
         Ok(file) => file,
     };
     file.write( data.as_bytes()).expect("error while writing to file");
+}
+pub fn get_config()-> ScanConfig {
+    let arguments = parse_arguments();
+    let ports = parse_ports(arguments.value_of("PORTS").unwrap().to_string());
+    let ip = arguments.value_of("IP").unwrap().to_string();
+    let scantype = parse_scan_type(arguments.value_of("SCANTYPE").unwrap().to_string());
+    let port_beginn = ports[0].parse::<usize>().unwrap_or(0);
+    let port_end = ports[1].parse::<usize>().unwrap_or(0);
+    let scanconfig: ScanConfig = ScanConfig {
+        ips: vec![Ipv4Addr::new(0,0,0,0)],
+        start_port: 0,
+        end_port: 0,
+        scantype: ScanType::TcpFull,
+        to_file: "/root".to_string()
+    };
+    scanconfig
 }
 pub fn parse_arguments()-> ArgMatches<'static> {
     let matches = App::new("Rust Network Scanner")
@@ -153,6 +175,28 @@ mod tests {
     }
 }
 
+fn parse_scan_type(string: String) -> ScanType {
+    let mut scantype: ScanType = ScanType::Ping;
+    match string.as_ref() {
+        "P" => {
+            scantype = ScanType::Ping;
+        },
+        "TF" => {
+            scantype = ScanType::TcpFull;
+        },
+        "TN" => {
+            scantype = ScanType::TcpNull;
+        },
+        "U" => {
+            scantype = ScanType::Udp;
+        },
+        _ => {
+            println!("Error while parsing scan type");
+            exit_on_error();
+        },
+    }
+    return scantype
+}
 
 /*
 

@@ -26,11 +26,11 @@ pub struct ScanResult {
     scantype: ScanType
 }
 pub struct ScanConfig {
-    ips: vec<Ipv4Addr>,
-    start_port: usize,
-    end_port: usize,
+    ips: Vec<Ipv4Addr>,
+    start_port: u16,
+    end_port: u16,
     scantype: ScanType,
-    to_file: Path,
+    to_file: String,
 }
 /*
     Bugs:
@@ -54,39 +54,7 @@ fn main() {
     let file = "C:\\Users\\Tyrell Wellick\\git\\rust-projekt\\src\\test.txt".to_string();
     utility::write_to_file(file, "Hallo Welt".to_string());
     */
-    let mut ports: Vec<usize>= Vec::new();
-    ports.push(80);
-    ports.push(443);
-    ports.push(445);
-    let mut ips: Vec<Ipv4Addr>= Vec::new();
-    ips.push(Ipv4Addr::new(12,23,34,45));
-    ips.push(Ipv4Addr::new(12,223,34,45));
-    ips.push(Ipv4Addr::new(212,23,34,45));
-    ips.push(Ipv4Addr::new(122,23,34,45));
-    let scantype: ScanType = ScanType::TcpFull;
-    let scantype1: ScanType = ScanType::TcpFull;
-    let scantype2: ScanType = ScanType::TcpFull;
-    let res1 = ScanResult {
-        ports: ports.clone(),
-        ip: ips[0],
-        scantype: scantype
-    };
-    let res2 = ScanResult {
-        ports: ports.clone(),
-        ip: ips[0],
-        scantype: scantype1
-    };
-    let res3 = ScanResult {
-        ports: ports.clone(),
-        ip: ips[0],
-        scantype: scantype2
-    };
-    let mut results: Vec<ScanResult>= Vec::new();
-    results.push(res1);
-    results.push(res2);
-    results.push(res3);
-    let out = utility::prepare_output(results);
-    println!("{}",out);
+
 }
 fn threaded_scan(ip: &str, port_beginn: usize, port_end: usize, scan_type:ScanType, threads: usize) -> Vec<usize> {
     let n_workers = threads;
@@ -125,28 +93,7 @@ fn threaded_scan(ip: &str, port_beginn: usize, port_end: usize, scan_type:ScanTy
 
 
 
-fn parse_scan_type(string: String) -> ScanType {
-    let mut scantype: ScanType = ScanType::Ping;
-    match string.as_ref() {
-        "P" => {
-            scantype = ScanType::Ping;
-        },
-        "TF" => {
-            scantype = ScanType::TcpFull;
-        },
-        "TN" => {
-            scantype = ScanType::TcpNull;
-        },
-        "U" => {
-            scantype = ScanType::Udp;
-        },
-        _ => {
-            println!("Error while parsing scan type");
-            utility::exit_on_error();
-        },
-    }
-    return scantype
-}
+
 
 
 
