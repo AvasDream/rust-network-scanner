@@ -5,6 +5,7 @@ authors = ["Vincent Grimmeisen <vigrimme@htwg-konstanz.de>"]
 
 [dependencies]
 threadpool = "1.7.1"
+rayon = "1.0"
 pnet = "0.21.0"
 clap = "2.32.0"
 rand = "0.3"

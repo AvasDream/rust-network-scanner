@@ -13,14 +13,37 @@ use pnet::packet::tcp::Tcp;
 use pnet::packet::ipv4::MutableIpv4Packet;
 use pnet::util::checksum;
 
+use ScanConfig;
+use ScanResult;
+use ScanType;
+use utility;
 
-pub fn tcp_full(addr: String, port:u16)-> Option<u16> {
+pub fn tcp_scan(scanconfig: ScanConfig)-> Vec<ScanResult> {
+    let mut results: Vec<ScanResult> = Vec::new();
+    for ip in scanconfig.ips {
+        let mut openports = Vec::new();
+        for port in scanconfig.start_port..scanconfig.end_port {
+            if tcp_full(utility::prep_ip(ip.to_string(),port)) {
+                openports.push(port);
+            };
+        }
+        let mut scanresult = ScanResult {
+            ports: openports,
+            ip: ip,
+            scantype: ScanType::TcpFull,
+            is_up: false,
+        };
+        results.push(scanresult);
+    }
+    results
+}
+pub fn tcp_full(addr: String)-> bool {
     println!("{}",addr);
     let addr = addr;
     if let Ok(stream) = TcpStream::connect(addr) {
-        return Some(port);
+        return true;
     } else {
-        None
+        return false;
     }
 }
 

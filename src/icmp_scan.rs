@@ -9,6 +9,7 @@ use std::net::IpAddr;
 use pnet::transport::{icmp_packet_iter, transport_channel};
 use pnet::transport::TransportProtocol::Ipv4;
 use pnet::transport::TransportChannelType::Layer4;
+
 use ScanConfig;
 use ScanResult;
 use ScanType;
