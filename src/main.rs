@@ -2,9 +2,9 @@ extern crate threadpool;
 extern crate pnet;
 extern crate clap;
 extern crate rand;
+
 use std::sync::mpsc::channel;
 use threadpool::ThreadPool;
-
 use std::net::IpAddr;
 use std::net::Ipv4Addr;
 use std::path::Path;
@@ -12,6 +12,7 @@ use std::path::Path;
 mod utility;
 mod tcp_scans;
 mod icmp_scan;
+mod udp_scan;
 mod iana_mapping;
 
 #[derive(PartialEq)]
@@ -53,11 +54,9 @@ impl Clone for ScanConfig {
 */
 
 fn main() {
+    /*
     let scanconfig = utility::get_config();
-    println!("{:?}",scanconfig.ips);
-    println!("{:?}",scanconfig.start_port);
-    println!("{:?}",scanconfig.end_port);
-    println!("{:?}",scanconfig.to_file);
+
     let to_file = scanconfig.to_file.clone();
     let mut output = "".to_string();
     match scanconfig.scantype {
@@ -78,6 +77,8 @@ fn main() {
     } else {
         println!("{}",output);
     }
+    */
+    let result = udp_scan::udp("192.168.0.1",0,500);
 }
 fn threaded_scan(ip: &str, port_beginn: u16, port_end: u16, scan_type:ScanType, threads: usize) -> Vec<u16> {
     let n_workers = threads;
@@ -117,7 +118,14 @@ fn threaded_scan(ip: &str, port_beginn: u16, port_end: u16, scan_type:ScanType, 
 
 
 
+/* Code to reuse
 
+    println!("{:?}",scanconfig.ips);
+    println!("{:?}",scanconfig.start_port);
+    println!("{:?}",scanconfig.end_port);
+    println!("{:?}",scanconfig.to_file);
+
+*/
 
 
 
