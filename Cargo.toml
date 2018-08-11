@@ -3,7 +3,21 @@ name = "projekt"
 version = "0.1.0"
 authors = ["Vincent G <vigrimme@htwg-konstanz.de>"]
 
+description="Networkscanner written in rust"
+
+documentation = "https://github.com/AvasDream/rust-network-scanner/blob/master/README.md"
+repository = "https://github.com/AvasDream/rust-network-scanner"
+readme = "README.md"
+keywords = ["Network Scanner"]
+categories = ["network-programming"]
+license = "MIT"
+
+
 [dependencies]
 pnet = "0.21.0"
 clap = "2.32.0"
 rand = "0.3"
+
+
+[features]
+default = []
