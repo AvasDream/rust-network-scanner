@@ -9,7 +9,6 @@ use std::net::IpAddr;
 use pnet::transport::{icmp_packet_iter, transport_channel};
 use pnet::transport::TransportProtocol::Ipv4;
 use pnet::transport::TransportChannelType::Layer4;
-use std::time::{Duration, Instant};
 
 use ScanConfig;
 use ScanResult;
@@ -50,7 +49,6 @@ fn icmp_scan(dest_ip: &Ipv4Addr) -> bool {
                 return false
             }
     }
-    false
 }
 fn configure_icmp_packet(mut req_packet: MutableEchoRequestPacket)-> MutableEchoRequestPacket {
     req_packet.set_icmp_type(icmp::IcmpType(8));

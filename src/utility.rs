@@ -44,7 +44,7 @@ pub fn prepare_output(results: Vec<ScanResult>) -> String {
 pub fn read_from_file(file: String)-> Vec<Ipv4Addr> {
     let mut ipvec = Vec::new();
     let file = match File::open(file.clone()) {
-        Err(err) => panic!("Couldn't open file {}", file),
+        Err(_err) => panic!("Couldn't open file {}", file),
         Ok(file) => file,
     };
     let f = BufReader::new(file);
@@ -101,10 +101,6 @@ pub fn get_config()-> ScanConfig {
             let ports = parse_ports(arguments.value_of("PORTS").unwrap().to_string());
             port_beginn = ports[0].parse::<u16>().unwrap_or(0);
             port_end = ports[1].parse::<u16>().unwrap_or(0);
-        },
-        _ => {
-            println!("Error while parsing scan type!");
-            exit_on_error();
         },
     }
     //Get Ip and add to Vec<Ipv4Addr>
@@ -216,7 +212,6 @@ pub fn parse_ports (ports: String) -> Vec<String> {
 
 
 pub fn exit_on_error(){
-    //print_usgae();
     process::exit(0);
 }
 

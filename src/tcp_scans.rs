@@ -1,8 +1,5 @@
 use std::net::*;
 
-use std::sync::mpsc::{channel,Sender}; //channel
-use std::thread;
-
 use ScanConfig;
 use ScanResult;
 use ScanType;
@@ -11,11 +8,8 @@ use utility;
 pub fn tcp_scan(scanconfig: ScanConfig)-> Vec<ScanResult> {
     let mut results: Vec<ScanResult> = Vec::new();
         for ip in scanconfig.ips {
-            println!("Scanning {}",ip);
-            let start = scanconfig.start_port;
-            let end = scanconfig.end_port;
                 let mut openports = Vec::new();
-                for port in start..end {
+                for port in scanconfig.start_port..scanconfig.end_port {
                     let ip = utility::prep_ip(ip.to_string(), port);
                     let check = tcp_full(ip);
                     if check {

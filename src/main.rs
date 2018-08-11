@@ -84,16 +84,5 @@ fn main() {
 
 
 
-/* Code to reuse
-
-    println!("{:?}",scanconfig.ips);
-    println!("{:?}",scanconfig.start_port);
-    println!("{:?}",scanconfig.end_port);
-    println!("{:?}",scanconfig.to_file);
-
-*/
-
-
-
 
 
