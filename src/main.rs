@@ -1,13 +1,8 @@
-extern crate scoped_threadpool;
 extern crate pnet;
 extern crate clap;
 extern crate rand;
 
-use std::sync::mpsc::channel;
-use scoped_threadpool::Pool;
-use std::net::IpAddr;
 use std::net::Ipv4Addr;
-use std::path::Path;
 
 mod utility;
 mod tcp_scans;

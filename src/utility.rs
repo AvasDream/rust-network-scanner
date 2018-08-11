@@ -1,12 +1,10 @@
-use std::env;
 use std::process; //exit(0)
 use clap::*;
 use std::net::Ipv4Addr;
 use std::collections::HashMap;
-use std::io::{self, BufReader};
+use std::io::BufReader;
 use std::io::prelude::*;
 use std::fs::File;
-use std::path::Path;
 use ScanType;
 use iana_mapping;
 use ScanResult;
@@ -216,10 +214,7 @@ pub fn parse_ports (ports: String) -> Vec<String> {
     res
 }
 
-pub fn str_to_u16(string: String) -> Option<u16> {
-    let ret = string.parse::<u16>().unwrap();
-    Some(ret)
-}
+
 pub fn exit_on_error(){
     //print_usgae();
     process::exit(0);

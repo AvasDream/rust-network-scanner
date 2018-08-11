@@ -1,18 +1,7 @@
-use std::thread;
 use std::net::*;
-use std::net::IpAddr;
-use std::net::Ipv4Addr;
 
-use pnet::packet::{Packet, MutablePacket, tcp};
-use pnet::packet::ip::IpNextHeaderProtocols;
-use pnet::transport::{ipv4_packet_iter, transport_channel};
-use pnet::transport::TransportProtocol::Ipv4;
-use pnet::transport::TransportChannelType::Layer4;
-use pnet::packet::tcp::MutableTcpPacket;
-use pnet::packet::tcp::Tcp;
-use pnet::packet::ipv4::MutableIpv4Packet;
-use pnet::util::checksum;
-use scoped_threadpool::Pool;
+use std::sync::mpsc::{channel,Sender}; //channel
+use std::thread;
 
 use ScanConfig;
 use ScanResult;
@@ -20,22 +9,28 @@ use ScanType;
 use utility;
 
 pub fn tcp_scan(scanconfig: ScanConfig)-> Vec<ScanResult> {
+
     let mut results: Vec<ScanResult> = Vec::new();
-    let mut pool = Pool::new(4);
-    pool.scoped(|scoped| {
         for ip in scanconfig.ips {
             println!("Scanning {}",ip);
+            let (tx,rx) = channel();
             let start = scanconfig.start_port;
             let end = scanconfig.end_port;
-            scoped.execute(move || {
                 let mut openports = Vec::new();
+
+
                 for port in start..end {
                     let ip = utility::prep_ip(ip.to_string(), port);
-                    let check = tcp_full(ip);
-                    if check {
-                        openports.push(port);
-                    };
+                    println!("{}",ip);
+                    port_open_tcp(ip,port, tx.clone());
+
                 }
+                for value in rx.iter().take(end as usize - start as usize + 1) {
+                    if value.1 {
+                        openports.push(value.0)
+                    }
+                }
+
                 let mut scanresult = ScanResult {
                     ports: openports.clone(),
                     ip: ip,
@@ -44,21 +39,25 @@ pub fn tcp_scan(scanconfig: ScanConfig)-> Vec<ScanResult> {
                 };
                 results.push(scanresult);
 
-            });
         }
-    });
     results
+
 }
 fn tcp_full(addr: String)-> bool {
-    //let t = thread::spawn(move || {
         let addr = addr;
-        if let Ok(stream) = TcpStream::connect(addr) {
+        if let Ok(_stream) = TcpStream::connect(addr) {
             return true;
         } else {
             return false;
         }
-    //});
-    //t.join();
-    false
 }
 
+pub fn port_open_tcp(addr: String,port: u16,  tx: Sender<(u16,bool)>) {
+    thread::spawn(move || {
+        if let Ok(stream) = TcpStream::connect(addr) {
+            tx.send((port, true))
+        } else {
+            tx.send((port, false))
+        }
+    });
+}
