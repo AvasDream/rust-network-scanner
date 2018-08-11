@@ -4,14 +4,14 @@
 
 Networkscanner written in [Rust](https://medium.com/mozilla-tech/why-rust-is-the-most-loved-language-by-developers-666add782563)
 
-## Prequisites
+## Prerequisites
 
-The Networkscanner has to run as administrator/root because it is opening raw sockets!
+The Networkscanner has to be run as administrator/root because it is opening raw sockets!
 
 Under Windows you have to install [WinPcap](https://www.winpcap.org/) and place the file Packet.lib under `/target/debug/deps/Packet.lib`.
 You can find the Packet.lib file in your winpcap installation here `WpdPack/Lib/x64/Packet.lib` or  here `WpdPack/Lib/Packet.lib`.
 
-If you have not added this file you will get an linking error similiar to this
+If you have not added this file you will get a linking error similiar to this
 `note: Non-UTF-8 output: LINK : fatal error LNK1181: Inputfile \"Packet.lib\" could not be opened.`
 
 Under Linux everything works fine without further steps.
