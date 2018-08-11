@@ -9,28 +9,19 @@ use ScanType;
 use utility;
 
 pub fn tcp_scan(scanconfig: ScanConfig)-> Vec<ScanResult> {
-
     let mut results: Vec<ScanResult> = Vec::new();
         for ip in scanconfig.ips {
             println!("Scanning {}",ip);
-            let (tx,rx) = channel();
             let start = scanconfig.start_port;
             let end = scanconfig.end_port;
                 let mut openports = Vec::new();
-
-
                 for port in start..end {
                     let ip = utility::prep_ip(ip.to_string(), port);
-                    println!("{}",ip);
-                    port_open_tcp(ip,port, tx.clone());
-
+                    let check = tcp_full(ip);
+                    if check {
+                        openports.push(port);
+                    };
                 }
-                for value in rx.iter().take(end as usize - start as usize + 1) {
-                    if value.1 {
-                        openports.push(value.0)
-                    }
-                }
-
                 let mut scanresult = ScanResult {
                     ports: openports.clone(),
                     ip: ip,
@@ -38,10 +29,8 @@ pub fn tcp_scan(scanconfig: ScanConfig)-> Vec<ScanResult> {
                     is_up: false,
                 };
                 results.push(scanresult);
-
         }
     results
-
 }
 fn tcp_full(addr: String)-> bool {
         let addr = addr;
@@ -52,12 +41,3 @@ fn tcp_full(addr: String)-> bool {
         }
 }
 
-pub fn port_open_tcp(addr: String,port: u16,  tx: Sender<(u16,bool)>) {
-    thread::spawn(move || {
-        if let Ok(stream) = TcpStream::connect(addr) {
-            tx.send((port, true))
-        } else {
-            tx.send((port, false))
-        }
-    });
-}

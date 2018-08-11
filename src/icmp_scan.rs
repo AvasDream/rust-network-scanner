@@ -19,8 +19,6 @@ use ScanType;
 pub fn ping_scan(scanconfig: ScanConfig)-> Vec<ScanResult> {
     let mut results: Vec<ScanResult> = Vec::new();
         for ip in  scanconfig.ips {
-            println!("{}", ip);
-
             let mut scanresult = ScanResult {
                 ports: Vec::new(),
                 ip: ip,
