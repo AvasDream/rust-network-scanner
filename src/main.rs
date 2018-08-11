@@ -1,11 +1,10 @@
-extern crate threadpool;
-extern crate rayon;
+extern crate scoped_threadpool;
 extern crate pnet;
 extern crate clap;
 extern crate rand;
 
 use std::sync::mpsc::channel;
-use threadpool::ThreadPool;
+use scoped_threadpool::Pool;
 use std::net::IpAddr;
 use std::net::Ipv4Addr;
 use std::path::Path;
@@ -27,6 +26,17 @@ pub struct ScanResult {
     ip: Ipv4Addr,
     scantype: ScanType,
     is_up: bool
+}
+impl Clone for ScanResult {
+    fn clone(&self) -> ScanResult {
+        let clone = ScanResult {
+            ports: self.ports.clone(),
+            scantype: self.scantype.clone(),
+            ip: self.ip.clone(),
+            is_up: self.is_up.clone(),
+        };
+        clone
+    }
 }
 pub struct ScanConfig {
     ips: Vec<Ipv4Addr>,
