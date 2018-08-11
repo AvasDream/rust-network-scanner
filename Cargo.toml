@@ -1,7 +1,7 @@
 [package]
 name = "projekt"
 version = "0.1.0"
-authors = ["Vincent Grimmeisen <vigrimme@htwg-konstanz.de>"]
+authors = ["Vincent G <vigrimme@htwg-konstanz.de>"]
 
 [dependencies]
 pnet = "0.21.0"

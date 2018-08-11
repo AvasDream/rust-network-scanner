@@ -1,8 +1,8 @@
 [![Build Status](https://travis-ci.org/AvasDream/rust-network-scanner.svg?branch=master)](https://travis-ci.org/AvasDream/rust-network-scanner)
 
-## Networkscanner written in Rust
+##  Rust Networkscanner
 
-Nmap like Networkscanner written in Rust
+Networkscanner written in [Rust](https://medium.com/mozilla-tech/why-rust-is-the-most-loved-language-by-developers-666add782563)
 
 ## Prequisites
 
@@ -16,7 +16,9 @@ If you have not added this file you will get an linking error similiar to this
 Under Linux everything works fine without further steps.
 
 ## Tested with
+
 Microsoft Windows 10 Pro 10.0.17134 Build 17134
+Linux Debian Kernel 4.16.16
 
 ## Usage
 ```
@@ -27,8 +29,8 @@ Microsoft Windows 10 Pro 10.0.17134 Build 17134
 Scan Types:
 P          Ping scan
 TF         Tcp full scan
-U          Udp scan
-RNS is a free Network Scanner.
+
+RNS is a free Network Scanner written in rust.
 
 Usage examples:
 ./rns -i 192.168.0.1 -p 0-100 -s TF
