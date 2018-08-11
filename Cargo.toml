@@ -8,7 +8,7 @@ description="Networkscanner written in rust"
 documentation = "https://github.com/AvasDream/rust-network-scanner/blob/master/README.md"
 repository = "https://github.com/AvasDream/rust-network-scanner"
 readme = "README.md"
-keywords = ["Network Scanner"]
+keywords = ["protocol"]
 categories = ["network-programming"]
 license = "MIT"
 
