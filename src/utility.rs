@@ -126,13 +126,10 @@ pub fn get_config()-> ScanConfig {
     let mut path = "".to_string();
     if arguments.is_present("IP_FILE") {
         path = arguments.value_of("IP_FILE").unwrap().to_string();
-        /*
-        if Path::new(&path).exists() == false {
-            println!("Can not open file {}!",path);
-            exit_on_error();
-        }
-        */
         ips = read_from_file(path.clone());
+    }
+    if arguments.is_present("OUTPUT") {
+        path = arguments.value_of("OUTPUT").unwrap().to_string();
     }
     let scanconfig: ScanConfig = ScanConfig {
         ips: ips,

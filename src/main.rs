@@ -13,7 +13,6 @@ use std::path::Path;
 mod utility;
 mod tcp_scans;
 mod icmp_scan;
-mod udp_scan;
 mod iana_mapping;
 
 #[derive(PartialEq)]
@@ -73,7 +72,7 @@ fn main() {
             output = utility::prepare_output(results);
         },
     }
-    if to_file != "" {
+    if scanconfig.to_file != "" {
         println!("{}",output);
         utility::write_to_file(scanconfig.to_file, output);
     } else {
