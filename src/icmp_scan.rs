@@ -18,7 +18,7 @@ use ScanType;
 
 
 pub fn ping_scan(scanconfig: ScanConfig)-> Vec<ScanResult> {
-    //let mut pool = Pool::new(4);
+    let mut pool = Pool::new(4);
     let mut results: Vec<ScanResult> = Vec::new();
     //pool.scoped(|scoped| {
         //scoped.execute(move || {

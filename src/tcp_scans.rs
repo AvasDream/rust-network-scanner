@@ -24,32 +24,41 @@ pub fn tcp_scan(scanconfig: ScanConfig)-> Vec<ScanResult> {
     let mut pool = Pool::new(4);
     pool.scoped(|scoped| {
         for ip in scanconfig.ips {
-            let mut openports = Vec::new();
-            for port in scanconfig.start_port..scanconfig.end_port {
-                let ip = utility::prep_ip(ip.to_string(), port);
-                let check = tcp_full(ip);
-                if check {
-                    openports.push(port);
+            println!("Scanning {}",ip);
+            let start = scanconfig.start_port;
+            let end = scanconfig.end_port;
+            scoped.execute(move || {
+                let mut openports = Vec::new();
+                for port in start..end {
+                    let ip = utility::prep_ip(ip.to_string(), port);
+                    let check = tcp_full(ip);
+                    if check {
+                        openports.push(port);
+                    };
+                }
+                let mut scanresult = ScanResult {
+                    ports: openports.clone(),
+                    ip: ip,
+                    scantype: ScanType::TcpFull,
+                    is_up: false,
                 };
-            }
-            let mut scanresult = ScanResult {
-                ports: openports,
-                ip: ip,
-                scantype: ScanType::TcpFull,
-                is_up: false,
-            };
-            results.push(scanresult);
+                results.push(scanresult);
+
+            });
         }
     });
     results
 }
 fn tcp_full(addr: String)-> bool {
-    println!("{}",addr);
-    let addr = addr;
-    if let Ok(stream) = TcpStream::connect(addr) {
-        return true;
-    } else {
-        return false;
-    }
+    //let t = thread::spawn(move || {
+        let addr = addr;
+        if let Ok(stream) = TcpStream::connect(addr) {
+            return true;
+        } else {
+            return false;
+        }
+    //});
+    //t.join();
+    false
 }
 
