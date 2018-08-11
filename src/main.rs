@@ -17,9 +17,9 @@ mod iana_mapping;
 
 #[derive(PartialEq)]
 #[derive(Clone, Copy)]
+#[derive(Debug)]
 pub enum ScanType{
      TcpFull,
-     Udp,
      Ping,
  }
 pub struct ScanResult {
@@ -47,28 +47,22 @@ impl Clone for ScanConfig {
         clone
     }
 }
-/*
-    Bugs:
-    - Programm not exiting after run with threadpool.
-    - Cant compile when using pnet::datalink
-*/
-
 fn main() {
 
     let scanconfig = utility::get_config();
 
-    let to_file = scanconfig.to_file.clone();
+
     let mut output = "".to_string();
+    println!("Start scan...");
     match scanconfig.scantype {
         ScanType::TcpFull => {
             let results = tcp_scans::tcp_scan(scanconfig.clone());
+            println!("Preparing output...");
             output = utility::prepare_output(results);
-        },
-        ScanType::Udp => {
-
         },
         ScanType::Ping => {
             let results = icmp_scan::ping_scan(scanconfig.clone());
+            println!("Preparing output...");
             output = utility::prepare_output(results);
         },
     }
@@ -78,8 +72,7 @@ fn main() {
     } else {
         println!("{}",output);
     }
-
-    //let result = udp_scan::udp("192.168.0.1",0,500);
+    println!("Scan finished.");
 }
 
 

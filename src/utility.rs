@@ -21,10 +21,8 @@ pub fn prepare_output(results: Vec<ScanResult>) -> String {
 |__|__|___|___|_|    |_|___|___|_| |_____|___|_| |_,_|  |_____|___|__,|_|_|_|_|___|_|
 
     ".to_string();
-    // Hacky and not pretty solution with index!
     let portmap = match results[0].scantype {
         ScanType::TcpFull => iana_mapping::get_tcp_map(),
-        ScanType::Udp => iana_mapping::get_udp_map(),
         _ => HashMap::new()
     };
     for result in results {
@@ -106,11 +104,6 @@ pub fn get_config()-> ScanConfig {
             port_beginn = ports[0].parse::<u16>().unwrap_or(0);
             port_end = ports[1].parse::<u16>().unwrap_or(0);
         },
-        ScanType::Udp => {
-            let ports = parse_ports(arguments.value_of("PORTS").unwrap().to_string());
-            port_beginn = ports[0].parse::<u16>().unwrap_or(0);
-            port_end = ports[1].parse::<u16>().unwrap_or(0);
-        },
         _ => {
             println!("Error while parsing scan type!");
             exit_on_error();
@@ -130,6 +123,8 @@ pub fn get_config()-> ScanConfig {
     }
     if arguments.is_present("OUTPUT") {
         path = arguments.value_of("OUTPUT").unwrap().to_string();
+    } else {
+        path = "".to_string();
     }
     let scanconfig: ScanConfig = ScanConfig {
         ips: ips,
@@ -163,9 +158,8 @@ RNS is a free Network Scanner.
 
 Usage examples:
 ./rns -i 192.168.0.1 -p 0-100 -s TF
-./rns -l C:\\ips.txt  -p 0-100 -s U
 ./rns -l C:\\ips.txt  -p 0-100 -s P
-./rns -i 192.168.0.1 -s P
+./rns -i 192.168.0.1 -s P -o C:\\out.txt
 ")
         .arg(Arg::with_name("SCANTYPE")
             .short("s")
@@ -240,9 +234,6 @@ fn parse_scan_type(string: String) -> ScanType {
         "TF" => {
             scantype = ScanType::TcpFull;
         },
-        "U" => {
-            scantype = ScanType::Udp;
-        },
         _ => {
             println!("Error while parsing scan type!");
             exit_on_error();
@@ -259,6 +250,11 @@ mod tests {
     #[test]
     fn test_prep_ip() {
         assert_eq!(prep_ip("1.3.3.7".to_string(), 1337),"1.3.3.7:1337");
+    }
+    #[test]
+    fn test_parse_scan_type() {
+        assert_eq!(parse_scan_type("TF".to_string()),ScanType::TcpFull);
+        assert_eq!(parse_scan_type("P".to_string()),ScanType::Ping);
     }
 }
 

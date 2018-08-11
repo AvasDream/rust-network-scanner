@@ -18,6 +18,7 @@ use ScanType;
 pub fn ping_scan(scanconfig: ScanConfig)-> Vec<ScanResult> {
     let mut results: Vec<ScanResult> = Vec::new();
     for ip in scanconfig.ips {
+        println!("{}",ip);
         let mut scanresult = ScanResult {
             ports: Vec::new(),
             ip: ip,
@@ -38,6 +39,7 @@ fn icmp_scan(dest_ip: &Ipv4Addr) -> bool {
     let mut iter = icmp_packet_iter(&mut rx);
     loop {
         let (rx_packet, addr) = iter.next().unwrap();
+        println!("what");
         if addr == *dest_ip && rx_packet.get_icmp_type() == icmp::IcmpType(0) {
             let mut echo_reply_buffer = [0u8; 64];
             let mut echo_reply_packet = MutableEchoReplyPacket::new(&mut echo_reply_buffer).unwrap();

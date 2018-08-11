@@ -23,7 +23,9 @@ pub fn tcp_scan(scanconfig: ScanConfig)-> Vec<ScanResult> {
     for ip in scanconfig.ips {
         let mut openports = Vec::new();
         for port in scanconfig.start_port..scanconfig.end_port {
-            if tcp_full(utility::prep_ip(ip.to_string(),port)) {
+            let ip = utility::prep_ip(ip.to_string(),port);
+            let check = tcp_full(ip);
+            if check {
                 openports.push(port);
             };
         }
